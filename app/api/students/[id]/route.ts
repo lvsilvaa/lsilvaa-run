@@ -1,0 +1,103 @@
+import { NextRequest, NextResponse } from 'next/server'
+import { sql } from '@/lib/db'
+
+type Params = {
+  params: Promise<{
+    id: string
+  }>
+}
+
+// =======================
+// GET ONE STUDENT
+// =======================
+
+export async function GET(
+  req: Request,
+  { params }: Params
+) {
+  try {
+    const { id } = await params
+
+    const student = await sql`
+      SELECT *
+      FROM students
+      WHERE id = ${Number(id)}
+      LIMIT 1
+    `
+
+    return NextResponse.json(student[0])
+  } catch (error) {
+    console.error(error)
+
+    return NextResponse.json(
+      { error: 'Erro ao buscar aluno' },
+      { status: 500 }
+    )
+  }
+}
+
+// =======================
+// UPDATE STUDENT
+// =======================
+
+export async function PUT(
+  req: Request,
+  { params }: Params
+) {
+  try {
+    const { id } = await params
+
+    const body = await req.json()
+
+    const student = await sql`
+      UPDATE students
+      SET
+        name = ${body.name},
+        email = ${body.email},
+        birth_date = ${body.birth_date || null},
+        weight_kg = ${body.weight_kg || null},
+        height_cm = ${body.height_cm || null},
+        base_pace_min_km = ${body.base_pace_min_km || null},
+        test_3km_time = ${body.test_3km_time || null},
+        test_3km_pace_min_km = ${body.test_3km_pace_min_km || null},
+
+        z1_min = ${body.z1_min || null},
+        z1_max = ${body.z1_max || null},
+        z2_min = ${body.z2_min || null},
+        z2_max = ${body.z2_max || null},
+        z3_min = ${body.z3_min || null},
+        z3_max = ${body.z3_max || null},
+        z4_min = ${body.z4_min || null},
+        z4_max = ${body.z4_max || null},
+        z5_min = ${body.z5_min || null},
+        z5_max = ${body.z5_max || null},
+
+        updated_at = NOW()
+
+      WHERE id = ${Number(id)}
+      RETURNING *
+    `
+
+    return NextResponse.json(student[0])
+  } catch (error) {
+    console.error(error)
+
+    return NextResponse.json(
+      { error: 'Erro ao atualizar aluno' },
+      { status: 500 }
+    )
+  }
+}
+export async function PATCH(
+  request: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  const { id } = await params
+  const { profile_image_url } = await request.json()
+  await sql`
+    UPDATE students
+    SET profile_image_url = ${profile_image_url}, updated_at = NOW()
+    WHERE id = ${Number(id)}
+  `
+  return NextResponse.json({ success: true })
+}
