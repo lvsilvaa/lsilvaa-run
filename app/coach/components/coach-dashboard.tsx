@@ -11,9 +11,6 @@ import { Button } from '@/components/ui/button'
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
 } from '@/components/ui/card'
 
 import {
@@ -120,21 +117,10 @@ export function CoachDashboard({
       <header className="sticky top-5 z-50 border-b">
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center">
-          <Logo
-            size="sm"
-            className="px-8"
-          />
-
-          <Logo
-            size="sm"
-            className="-ml-8 opacity-20 scale-95"
-          />
-
-          <Logo
-            size="sm"
-            className="-ml-8 opacity-10 scale-90 px-8"
-          />
-        </div>
+            <Logo size="sm" className="px-8" />
+            <Logo size="sm" className="-ml-8 opacity-20 scale-95" />
+            <Logo size="sm" className="-ml-8 opacity-10 scale-90 px-8" />
+          </div>
 
           <Button
             variant="ghost"
@@ -163,14 +149,12 @@ export function CoachDashboard({
         <Card className="mb-8 relative z-10">
           <CardContent className="pt-6">
             <div className="flex flex-col items-center sm:flex-row gap-6">
-
               {isAdmin ? (
                 <Avatar className="h-24 w-24">
                   <AvatarImage
                     src="/images/profile.png"
                     alt={coach.name}
                   />
-
                   <AvatarFallback>
                     {getInitials(coach.name)}
                   </AvatarFallback>
@@ -189,8 +173,7 @@ export function CoachDashboard({
 
               <div>
                 <h1 className="text-2xl font-bold">
-                  {coach.brand_name?.trim() ||
-                    'Lsilva Run'}
+                  {coach.brand_name?.trim() || 'Lsilva Run'}
                 </h1>
 
                 <p className="text-muted-foreground">
@@ -224,138 +207,142 @@ export function CoachDashboard({
             </Button>
           </div>
 
-         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-  {students.map((student) => (
-    <Card
-      key={student.id}
-      className="
-        group
-        overflow-hidden
-        border-white/10
-        bg-white/5
-        backdrop-blur-md
-        transition-all
-        duration-300
-        hover:border-green-500/30
-        hover:bg-white/[0.08]
-        hover:shadow-[0_0_30px_rgba(34,197,94,0.15)]
-      "
-    >
-      <CardContent className="p-5">
-        <div className="flex items-start justify-between gap-4">
+          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+            {students.map((student) => (
+              <Card
+                key={student.id}
+                className="
+                  group
+                  overflow-hidden
+                  border-white/10
+                  bg-white/5
+                  backdrop-blur-md
+                  transition-all
+                  duration-300
+                  hover:border-green-500/30
+                  hover:bg-white/[0.08]
+                  hover:shadow-[0_0_30px_rgba(34,197,94,0.15)]
+                "
+              >
+                <CardContent className="p-5">
 
-          {/* ESQUERDA */}
-          <div className="flex items-center gap-4">
+                  {/* Layout: coluna no mobile, linha no desktop */}
+                  <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
 
-            <div
-              className="
-                relative
-                h-20
-                w-20
-                overflow-hidden
-                rounded-full
-                border
-                border-white/10
-                bg-zinc-900
-                shadow-lg
-              "
-            >
-              {student.profile_image_url ? (
-                <Image
-                  src={student.profile_image_url}
-                  alt={student.name}
-                  width={56}
-                  height={56}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <div
-                  className="
-                    flex
-                    h-full
-                    w-full
-                    items-center
-                    justify-center
-                    bg-gradient-to-br
-                    from-green-500
-                    to-emerald-700
-                    text-lg
-                    font-bold
-                    text-white
-                  "
-                >
-                  {getInitials(student.name)}
-                </div>
-              )}
-            </div>
+                    {/* Avatar + Info */}
+                    <div className="flex items-center gap-4">
+                      <div
+                        className="
+                          relative
+                          h-16
+                          w-16
+                          shrink-0
+                          overflow-hidden
+                          rounded-full
+                          border
+                          border-white/10
+                          bg-zinc-900
+                          shadow-lg
+                        "
+                      >
+                        {student.profile_image_url ? (
+                          <Image
+                            src={student.profile_image_url}
+                            alt={student.name}
+                            width={64}
+                            height={64}
+                            className="h-full w-full object-cover"
+                          />
+                        ) : (
+                          <div
+                            className="
+                              flex
+                              h-full
+                              w-full
+                              items-center
+                              justify-center
+                              bg-gradient-to-br
+                              from-green-500
+                              to-emerald-700
+                              text-lg
+                              font-bold
+                              text-white
+                            "
+                          >
+                            {getInitials(student.name)}
+                          </div>
+                        )}
+                      </div>
 
-            <div className="space-y-1">
-              <h3 className="font-semibold text-white text-lg leading-none">
-                {student.name}
-              </h3>
+                      <div className="min-w-0 space-y-1">
+                        <h3 className="font-semibold text-white text-base leading-none truncate">
+                          {student.name}
+                        </h3>
 
-              <p className="text-sm text-zinc-400">
-                {student.email}
-              </p>
+                        <p className="text-sm text-zinc-400 truncate">
+                          {student.email}
+                        </p>
 
-              <div className="flex items-center gap-2 pt-1">
-                <Badge
-                  variant="secondary"
-                  className="
-                    bg-green-500/10
-                    text-green-400
-                    border
-                    border-green-500/20
-                  "
-                >
-                  Ativo
-                </Badge>
-              </div>
-            </div>
+                        <div className="flex items-center gap-2 pt-1">
+                          <Badge
+                            variant="secondary"
+                            className="
+                              bg-green-500/10
+                              text-green-400
+                              border
+                              border-green-500/20
+                            "
+                          >
+                            Ativo
+                          </Badge>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Botões — lado no desktop, embaixo no mobile */}
+                    <div className="flex sm:flex-col gap-2 sm:shrink-0">
+                      <Button
+                        onClick={() =>
+                          router.push(`/coach/student/${student.id}`)
+                        }
+                        className="
+                          flex-1
+                          sm:flex-none
+                          bg-green-500
+                          text-black
+                          hover:bg-green-400
+                          font-semibold
+                        "
+                      >
+                        Ver aluno
+                        <ChevronRight className="ml-2 h-4 w-4" />
+                      </Button>
+
+                      <Button
+                        variant="outline"
+                        onClick={() => {
+                          setEditingStudent(student)
+                          setShowAddStudent(true)
+                        }}
+                        className="
+                          flex-1
+                          sm:flex-none
+                          border-white/10
+                          bg-destructive
+                          text-white
+                          hover:bg-white/10
+                        "
+                      >
+                        <Pencil className="mr-2 h-4 w-4" />
+                        Editar
+                      </Button>
+                    </div>
+
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
           </div>
-
-          {/* AÇÕES */}
-          <div className="flex flex-col gap-2">
-            <Button
-              onClick={() =>
-                router.push(
-                  `/coach/student/${student.id}`
-                )
-              }
-              className="
-                bg-green-500
-                text-black
-                hover:bg-white-5
-                font-semibold
-              "
-            >
-              Ver aluno
-
-              <ChevronRight className="ml-2 h-4 w-4" />
-            </Button>
-
-            <Button
-              variant="outline"
-              onClick={() => {
-                setEditingStudent(student)
-                setShowAddStudent(true)
-              }}
-              className="
-                border-white/10
-                bg-destructive
-                text-white
-                hover:bg-white/10
-              "
-            >
-              <Pencil className="mr-2 h-4 w-4" />
-              Editar
-            </Button>
-          </div>
-        </div>
-      </CardContent>
-    </Card>
-  ))}
-</div>
         </div>
       </main>
 
@@ -363,7 +350,6 @@ export function CoachDashboard({
         open={showAddStudent}
         onOpenChange={(open) => {
           setShowAddStudent(open)
-
           if (!open) {
             setEditingStudent(null)
           }
