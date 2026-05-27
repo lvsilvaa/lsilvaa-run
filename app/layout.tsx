@@ -16,7 +16,6 @@ export const metadata: Metadata = {
   title: 'Lsilvaa Running | Gestão de Treinos',
   description: 'Plataforma de gestão de treinos de corrida - Lsilvaa Running',
    manifest: '/manifest.json',
-    themeColor: '#1a1d23',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',

@@ -23,6 +23,7 @@ type AddStudentDialogProps = {
   onOpenChange: (open: boolean) => void
   onSuccess: () => void
   student?: Student | null
+  coachId: number
 }
 
 // ===============================
@@ -102,6 +103,7 @@ export function AddStudentDialog({
   onOpenChange,
   onSuccess,
   student,
+  coachId,
 }: AddStudentDialogProps) {
   const [isLoading, setIsLoading] = useState(false)
 
@@ -283,6 +285,7 @@ export function AddStudentDialog({
     }
 
     const data = {
+      coach_id: coachId,
       name,
       email,
 

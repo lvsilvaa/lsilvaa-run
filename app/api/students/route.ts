@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { sql } from '@/lib/db'
+import { hashPassword } from '@/lib/auth'
 
 // =======================
 // GET STUDENTS
@@ -37,7 +38,7 @@ export async function GET() {
 export async function POST(req: Request) {
   try {
     const body = await req.json()
-
+    const hashedPassword = await hashPassword(body.password)
     const student = await sql`
       INSERT INTO students (
         coach_id,
@@ -72,7 +73,7 @@ export async function POST(req: Request) {
         ${body.coach_id || null},
         ${body.name},
         ${body.email},
-        ${body.password || ''},
+        ${hashedPassword},
         ${body.birth_date || null},
         ${body.weight_kg || null},
         ${body.height_cm || null},

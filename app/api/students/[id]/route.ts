@@ -93,10 +93,10 @@ export async function PATCH(
   { params }: { params: Promise<{ id: string }> }
 ) {
   const { id } = await params
-  const { profile_image_url } = await request.json()
+  const { avatar_url } = await request.json()
   await sql`
     UPDATE students
-    SET profile_image_url = ${profile_image_url}, updated_at = NOW()
+    SET avatar_url = ${avatar_url}, updated_at = NOW()
     WHERE id = ${Number(id)}
   `
   return NextResponse.json({ success: true })

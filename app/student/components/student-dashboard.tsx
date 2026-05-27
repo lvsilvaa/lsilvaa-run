@@ -96,7 +96,7 @@ export function StudentDashboard({
     useState(false)
 
   const [avatar, setAvatar] =
-    useState<string | null>(student.profile_image_url || null)
+    useState<string | null>(student.avatar_url || null)
 
   const [stravaImportData, setStravaImportData] =
     useState<{
@@ -257,7 +257,7 @@ export function StudentDashboard({
             'Content-Type':
               'application/json',
           },
-         body: JSON.stringify({ profile_image_url: avatarUrl }),
+         body: JSON.stringify({ avatar_url: avatarUrl }),
         }
       )
 
@@ -650,20 +650,20 @@ async function handleStravaImport(activity: {
           {/* STRAVA */}
           <div className="lg:col-span-4">
 
-            <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2">
+            <h2 className="text-lg font-semibold text-white mb-4 flex items-center gap-2 pt-8">
 
               <ImportIcon className="h-5 w-5 text-accent" />
 
               Strava
             </h2>
 
-            <Card className="h-full border-accent/20 bg-white/5 backdrop-blur">
+            <Card className="w-full border-accent/20 bg-white/5 backdrop-blur overflow-hidden">
 
-              <CardContent className="p-4 h-full">
+             <CardContent className="p-4 flex flex-col gap-4">
 
-                <div className="flex flex-col h-full justify-between">
+               <div className="flex flex-col gap-4">
 
-                  <div className="space-y-2 mb-4">
+                  <div className="space-y-2 mb-4 ">
 
                     <h3 className="font-semibold text-white">
                       Importar atividade

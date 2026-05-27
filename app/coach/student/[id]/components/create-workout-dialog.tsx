@@ -1335,11 +1335,19 @@ function calculateTotals() {
 
           {/* ACTIONS */}
 
-          <div className="flex justify-between gap-2 pt-2">
+          <div className="
+            flex
+            flex-col
+            sm:flex-row
+            justify-end
+            gap-2
+            pt-4
+            w-full
+          ">
             <Button
               type="button"
-              variant="ghost"
-              size="sm"
+              variant="outline"
+              className="w-full sm:w-auto"
               onClick={reset}
               disabled={isLoading}
             >
@@ -1348,10 +1356,11 @@ function calculateTotals() {
               Limpar
             </Button>
 
-            <div className="flex gap-2">
+            <div className="flex gap-2 justify-between">
               <Button
                 type="button"
                 variant="outline"
+                className='px-8'
                 onClick={() =>
                   onOpenChange(false)
                 }
@@ -1361,6 +1370,7 @@ function calculateTotals() {
 
               <Button
                 type="submit"
+                className='px-8'
                 disabled={isLoading}
               >
                 {isLoading

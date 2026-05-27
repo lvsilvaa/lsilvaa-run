@@ -18,7 +18,7 @@ export type Coach = {
   password_hash: string
   approved: boolean
   is_admin: boolean
-  profile_image_url?: string | null
+  avatar_url?: string | null
   created_at: string
 }
 
@@ -35,7 +35,7 @@ export type Student = {
   email: string
   password_hash: string
 
-  profile_image_url: string | null
+  avatar_url: string | null
 
   birth_date: string | null
 

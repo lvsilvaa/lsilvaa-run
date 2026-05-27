@@ -69,7 +69,7 @@ export function CoachDashboard({
 
   const [coachAvatar, setCoachAvatar] =
     useState<string | null>(
-      coach.profile_image_url
+      coach.avatar_url
     )
 
   const [showAddStudent, setShowAddStudent] =
@@ -245,9 +245,9 @@ export function CoachDashboard({
                           shadow-lg
                         "
                       >
-                        {student.profile_image_url ? (
+                        {student.avatar_url ? (
                           <Image
-                            src={student.profile_image_url}
+                            src={student.avatar_url}
                             alt={student.name}
                             width={64}
                             height={64}
@@ -346,16 +346,18 @@ export function CoachDashboard({
         </div>
       </main>
 
-      <AddStudentDialog
+     <AddStudentDialog
         open={showAddStudent}
         onOpenChange={(open) => {
           setShowAddStudent(open)
+
           if (!open) {
             setEditingStudent(null)
           }
         }}
         onSuccess={() => mutate()}
         student={editingStudent}
+        coachId={coach.id}
       />
     </div>
   )

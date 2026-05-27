@@ -47,7 +47,7 @@ export async function POST(request: NextRequest) {
     if (session.role === 'coach') {
       await sql`
         UPDATE coaches
-        SET profile_image_url = ${imageUrl}
+        SET avatar_url = ${imageUrl}
         WHERE id = ${session.id}
       `
     }
@@ -55,7 +55,7 @@ export async function POST(request: NextRequest) {
     if (session.role === 'student') {
       await sql`
         UPDATE students
-        SET profile_image_url = ${imageUrl}
+        SET avatar_url = ${imageUrl}
         WHERE id = ${session.id}
       `
     }

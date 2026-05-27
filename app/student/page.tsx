@@ -13,7 +13,7 @@ export default async function StudentPage() {
   const studentData = await sql`
     SELECT s.*, c.name as coach_name, c.brand_name as coach_brand
     FROM students s
-    JOIN coaches c ON s.coach_id = c.id
+    LEFT JOIN coaches c ON s.coach_id = c.id
     WHERE s.id = ${session.id}
   `
   

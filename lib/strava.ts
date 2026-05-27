@@ -24,9 +24,14 @@ export function getStravaAuthUrl(studentId: number): string {
     client_id: STRAVA_CLIENT_ID,
     redirect_uri: STRAVA_REDIRECT_URI,
     response_type: 'code',
-    scope: 'read,activity:read_all',
+
+    scope: STRAVA_SCOPES.join(','),
+
+    approval_prompt: 'force',
+
     state: studentId.toString(),
   })
+
   return `https://www.strava.com/oauth/authorize?${params.toString()}`
 }
 
@@ -57,8 +62,8 @@ export async function exchangeStravaCode(code: string): Promise<{
 export const STRAVA_SCOPES = [
   'read',
   'activity:read',
-  'activity:write', // ← ADICIONAR esta permissão
-  'activity:read_all'
+  'activity:write',
+  'activity:read_all',
 ]
 
 export async function refreshStravaToken(refreshToken: string): Promise<{
