@@ -111,8 +111,8 @@ export function WorkoutShareCard({
           background:
             'linear-gradient(135deg, #000428 0%, #004e92 50%, #001f3f 100%)',
           color: '#ffffff',
-          borderRadius: '24px',
-          padding: '24px',
+          borderRadius: '20px',
+          padding: '18px',
           overflow: 'hidden',
           position: 'relative',
           boxShadow:
@@ -123,14 +123,14 @@ export function WorkoutShareCard({
         <div
           style={{
             position: 'absolute',
-            top: '-80px',
-            right: '-80px',
-            width: '240px',
-            height: '240px',
+            top: '-60px',
+            right: '-60px',
+            width: '180px',
+            height: '160px',
             borderRadius: '9999px',
             background:
               'rgba(34,197,94,0.18)',
-            filter: 'blur(60px)',
+            filter: 'blur(45px)',
           }}
         />
 
@@ -163,7 +163,7 @@ export function WorkoutShareCard({
             <h1
               style={{
                 marginTop: '4px',
-                fontSize: '28px',
+                fontSize: '22px',
                 fontWeight: '700',
                 lineHeight: 1.1,
               }}
@@ -176,10 +176,10 @@ export function WorkoutShareCard({
             style={{
               background:
                 'rgba(255,255,255,0.08)',
-              padding: '12px 16px',
+              padding: '10px 14px',
               borderRadius: '16px',
               backdropFilter: 'blur(10px)',
-              minWidth: '120px',
+              minWidth: '100px',
             }}
           >
             <p
@@ -232,11 +232,11 @@ export function WorkoutShareCard({
         {/* Metrics */}
         <div
           style={{
-            marginTop: '24px',
+            marginTop: '18px',
             display: 'grid',
             gridTemplateColumns:
               'repeat(3, minmax(0, 1fr))',
-            gap: '12px',
+            gap: '8px',
           }}
         >
           {/* Distância */}
@@ -246,8 +246,8 @@ export function WorkoutShareCard({
                 'rgba(255,255,255,0.06)',
               border:
                 '1px solid rgba(255,255,255,0.1)',
-              borderRadius: '18px',
-              padding: '16px',
+              borderRadius: '14px',
+              padding: '12px',
               textAlign: 'center',
               backdropFilter: 'blur(8px)',
             }}
@@ -271,7 +271,7 @@ export function WorkoutShareCard({
 
             <p
               style={{
-                fontSize: '20px',
+                fontSize: '16px',
                 fontWeight: '700',
                 marginTop: '4px',
               }}
@@ -310,18 +310,62 @@ export function WorkoutShareCard({
               Pace
             </p>
 
-            <p
+          <p
               style={{
                 fontSize: '20px',
                 fontWeight: '700',
                 marginTop: '4px',
               }}
             >
-             {formatPace(
-                workout.target_pace_min_km
-                    ? Number(workout.target_pace_min_km)
-                    : null
-                )}
+              {(() => {
+                const paceValue =
+                  workout.target_pace_min_km ||
+                  workout.target_pace_from ||
+                  workout.target_pace_to ||
+                  workout.steps?.reduce(
+                    (lowest: any, step: any) => {
+                      const pace =
+                        step.target_pace_from ||
+                        step.target_from
+
+                      if (!pace) return lowest
+
+                      // se vier string tipo "5:30"
+                      if (
+                        typeof pace === 'string' &&
+                        pace.includes(':')
+                      ) {
+                        return lowest || pace
+                      }
+
+                      // se vier decimal
+                      const numericPace = Number(pace)
+
+                      if (isNaN(numericPace)) {
+                        return lowest
+                      }
+
+                      if (!lowest) {
+                        return numericPace
+                      }
+
+                      return numericPace < lowest
+                        ? numericPace
+                        : lowest
+                    },
+                    null
+                  )
+
+                // se já for string pace
+                if (
+                  typeof paceValue === 'string' &&
+                  paceValue.includes(':')
+                ) {
+                  return `${paceValue}`
+                }
+
+                return formatPace(Number(paceValue))
+              })()}
             </p>
           </div>
 
@@ -332,8 +376,8 @@ export function WorkoutShareCard({
                 'rgba(255,255,255,0.06)',
               border:
                 '1px solid rgba(255,255,255,0.1)',
-              borderRadius: '18px',
-              padding: '16px',
+              borderRadius: '14px',
+              padding: '12px',
               textAlign: 'center',
               backdropFilter: 'blur(8px)',
             }}
@@ -357,7 +401,7 @@ export function WorkoutShareCard({
 
             <p
               style={{
-                fontSize: '20px',
+                fontSize: '14px',
                 fontWeight: '700',
                 marginTop: '4px',
               }}
@@ -373,13 +417,13 @@ export function WorkoutShareCard({
         {workout.description && (
           <div
             style={{
-              marginTop: '24px',
+              marginTop: '18px',
               background:
                 'rgba(255,255,255,0.06)',
               border:
                 '1px solid rgba(255,255,255,0.1)',
-              borderRadius: '18px',
-              padding: '16px',
+              borderRadius: '14px',
+              padding: '12px',
               backdropFilter: 'blur(8px)',
             }}
           >
@@ -410,8 +454,8 @@ export function WorkoutShareCard({
         {/* Footer */}
         <div
           style={{
-            marginTop: '32px',
-            paddingTop: '16px',
+            marginTop: '20px',
+            paddingTop: '12px',
             borderTop:
               '1px solid rgba(255,255,255,0.1)',
             display: 'flex',
@@ -445,9 +489,9 @@ export function WorkoutShareCard({
               background: '#22c55e',
               color: '#000000',
               borderRadius: '9999px',
-              padding: '10px 16px',
+              padding: '8px 14px',
               fontWeight: '700',
-              fontSize: '14px',
+              fontSize: '12px',
             }}
           >
             BORA TREINAR

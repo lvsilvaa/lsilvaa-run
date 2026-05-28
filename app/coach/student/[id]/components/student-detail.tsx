@@ -28,14 +28,11 @@ import {
 } from 'lucide-react'
 
 import { Logo } from '@/components/logo'
-
 import { Button } from '@/components/ui/button'
 
 import {
   Card,
   CardContent,
-  CardDescription,
-  CardTitle,
 } from '@/components/ui/card'
 
 import {
@@ -56,7 +53,6 @@ import {
 import { CreateWorkoutDialog } from './create-workout-dialog'
 import { EditWorkoutDialog } from './edit-workout-dialog'
 import { StudentMetrics } from './student-metrics'
-
 import { WorkoutShareCard } from '@/components/workout-share-card'
 
 import { toast } from 'sonner'
@@ -91,6 +87,8 @@ export function StudentDetail({
 
   const [editingWorkout, setEditingWorkout] =
     useState<Workout | null>(null)
+    const [selectedWorkoutId, setSelectedWorkoutId] =
+  useState<number | null>(null)
 
   const { data: workoutsData, mutate: mutateWorkouts } =
     useSWR<{ workouts: Workout[] }>(
@@ -118,9 +116,7 @@ export function StudentDetail({
     }
   )
 
-  const workouts =
-    workoutsData?.workouts || []
-
+  const workouts = workoutsData?.workouts || []
   const logs = logsData?.logs || []
 
   async function handleLogout() {
@@ -131,9 +127,7 @@ export function StudentDetail({
     router.push('/')
   }
 
-  async function handleCopyWorkout(
-    workout: Workout
-  ) {
+  async function handleCopyWorkout(workout: Workout) {
     try {
       const text = buildWorkoutText(workout)
 
@@ -199,15 +193,14 @@ export function StudentDetail({
     return text
   }
 
-  async function handleDeleteWorkout(
-    workoutId: number
-  ) {
+  async function handleDeleteWorkout(workoutId: number) {
     if (
       !confirm(
         'Tem certeza que deseja excluir este treino?'
       )
-    )
+    ) {
       return
+    }
 
     try {
       const res = await fetch(
@@ -240,42 +233,32 @@ export function StudentDetail({
       .toUpperCase()
   }
 
-  function formatPace(
-    pace: number | null
-  ) {
+  function formatPace(pace: number | null) {
     if (!pace) return '-'
 
     const min = Math.floor(pace)
-
-    const sec = Math.round(
-      (pace % 1) * 60
-    )
+    const sec = Math.round((pace % 1) * 60)
 
     return `${min}'${sec
       .toString()
       .padStart(2, '0')}"/km`
   }
 
-  function getWorkoutTypeLabel(
-    type: string
-  ) {
-    const labels: Record<string, string> =
-      {
-        easy: 'Leve',
-        tempo: 'Tempo',
-        interval: 'Intervalado',
-        long: 'Longão',
-        recovery: 'Recuperação',
-        race: 'Prova',
-        fartlek: 'Fartlek',
-      }
+  function getWorkoutTypeLabel(type: string) {
+    const labels: Record<string, string> = {
+      easy: 'Leve',
+      tempo: 'Tempo',
+      interval: 'Intervalado',
+      long: 'Longão',
+      recovery: 'Recuperação',
+      race: 'Prova',
+      fartlek: 'Fartlek',
+    }
 
     return labels[type] || type
   }
 
-  function getWorkoutStatusColor(
-    status: string
-  ) {
+  function getWorkoutStatusColor(status: string) {
     switch (status) {
       case 'completed':
         return 'bg-green-500/10 text-green-600 border-green-500/20'
@@ -299,38 +282,29 @@ export function StudentDetail({
   })
 
   const monthStart = startOfMonth(today)
-
   const monthEnd = endOfMonth(today)
 
   const weekLogs = logs.filter((l) => {
     const date = new Date(l.completed_at)
 
-    return (
-      date >= weekStart &&
-      date <= weekEnd
-    )
+    return date >= weekStart && date <= weekEnd
   })
 
   const monthLogs = logs.filter((l) => {
     const date = new Date(l.completed_at)
 
-    return (
-      date >= monthStart &&
-      date <= monthEnd
-    )
+    return date >= monthStart && date <= monthEnd
   })
 
   const weeklyKm = weekLogs.reduce(
     (acc, l) =>
-      acc +
-      (Number(l.actual_distance_km) || 0),
+      acc + (Number(l.actual_distance_km) || 0),
     0
   )
 
   const monthlyKm = monthLogs.reduce(
     (acc, l) =>
-      acc +
-      (Number(l.actual_distance_km) || 0),
+      acc + (Number(l.actual_distance_km) || 0),
     0
   )
 
@@ -346,19 +320,12 @@ export function StudentDetail({
         b.status === 'completed' ||
         b.status === 'skipped'
 
-      if (aFinished && !bFinished)
-        return 1
-
-      if (!aFinished && bFinished)
-        return -1
+      if (aFinished && !bFinished) return 1
+      if (!aFinished && bFinished) return -1
 
       return (
-        new Date(
-          a.scheduled_date
-        ).getTime() -
-        new Date(
-          b.scheduled_date
-        ).getTime()
+        new Date(a.scheduled_date).getTime() -
+        new Date(b.scheduled_date).getTime()
       )
     }
   )
@@ -372,19 +339,14 @@ export function StudentDetail({
               variant="ghost"
               size="sm"
               className="text-white"
-              onClick={() =>
-                router.push('/coach')
-              }
+              onClick={() => router.push('/coach')}
             >
               <ArrowLeft className="mr-2 h-4 w-4 text-white" />
               Voltar
             </Button>
 
             <div className="flex items-center">
-              <Logo
-                size="sm"
-                className="px-8"
-              />
+              <Logo size="sm" className="px-8" />
 
               <Logo
                 size="sm"
@@ -424,9 +386,7 @@ export function StudentDetail({
             <div className="flex flex-col sm:flex-row gap-6">
               <Avatar className="h-20 w-20 border-4 border-accent/20">
                 <AvatarImage
-                  src={
-                    student.avatar_url || ''
-                  }
+                  src={student.avatar_url || ''}
                   alt={student.name}
                 />
 
@@ -453,9 +413,7 @@ export function StudentDetail({
                       <Timer className="h-3 w-3" />
                       Pace base:{' '}
                       {formatPace(
-                        Number(
-                          student.base_pace_min_km
-                        )
+                        Number(student.base_pace_min_km)
                       )}
                     </Badge>
                   )}
@@ -549,146 +507,212 @@ export function StudentDetail({
               </Button>
             </div>
 
-            <div className="space-y-3">
-              {sortedWorkouts.map(
-                (workout, index) => (
-                  <Card
-                    key={workout.id}
-                    className={`
-                    overflow-hidden transition-all
-                    ${
-                      index === 0 &&
-                      workout.status ===
-                        'pending'
-                        ? 'border-accent shadow-lg shadow-accent/10'
-                        : ''
-                    }
-                  `}
-                  >
-                    <CardContent className="p-4">
-                      <div className="flex flex-col lg:flex-row lg:items-start lg:justify-between gap-4">
-                        <div className="flex-1 min-w-0">
-                          <div className="flex flex-wrap items-center gap-2 mb-1">
-                            <h3 className="font-semibold break-words">
-                              {workout.title}
-                            </h3>
+            <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-4">
+              {sortedWorkouts.map((workout, index) => (
+              <Card
+  key={workout.id}
+  onClick={() =>
+    setSelectedWorkoutId((current) =>
+      current === workout.id
+        ? null
+        : workout.id
+    )
+  }
+  className={`
+    h-full
+    cursor-pointer
+    overflow-hidden
+    border-white/10
+    bg-white
+    backdrop-blur-md
+    transition-all
+    hover:scale-[1.01]
+    hover:border-accent/30
+    ${
+      selectedWorkoutId === workout.id
+        ? 'border-accent shadow-lg shadow-accent/20'
+        : ''
+    }
+    ${
+      index === 0 &&
+      workout.status === 'pending'
+        ? 'border-accent shadow-lg shadow-accent/10'
+        : ''
+    }
+  `}
+>
+  <CardContent className="p-4">
+    <div className="flex flex-col gap-4 h-full">
 
-                            <Badge
-                              variant="outline"
-                              className={getWorkoutStatusColor(
-                                workout.status
-                              )}
-                            >
-                              {workout.status ===
-                              'completed'
-                                ? 'Concluído'
-                                : workout.status ===
-                                  'skipped'
-                                ? 'Pulado'
-                                : 'Pendente'}
-                            </Badge>
-                          </div>
+      {/* CONTEÚDO */}
+      <div className="flex-1 flex flex-col justify-center text-center items-center">
 
-                          <p className="text-sm text-muted-foreground mb-2">
-                            {format(
-                              new Date(
-                                workout.scheduled_date
-                              ),
-                              "EEEE, d 'de' MMMM",
-                              {
-                                locale: ptBR,
-                              }
-                            )}
-                          </p>
+        <div className="w-full">
 
-                          <div className="flex flex-wrap gap-2">
-                            <Badge variant="secondary">
-                              {getWorkoutTypeLabel(
-                                workout.workout_type
-                              )}
-                            </Badge>
+          {/* HEADER */}
+          <div className="flex flex-wrap items-center justify-center gap-2 mb-2">
 
-                            {workout.target_distance_km && (
-                              <Badge variant="outline">
-                                {
-                                  workout.target_distance_km
-                                }{' '}
-                                km
-                              </Badge>
-                            )}
+            <h3 className="text-lg font-bold break-words text-black">
+              {workout.title}
+            </h3>
 
-                            {workout.target_pace_min_km && (
-                              <Badge variant="outline">
-                                {formatPace(
-                                  Number(
-                                    workout.target_pace_min_km
-                                  )
-                                )}
-                              </Badge>
-                            )}
-                          </div>
-
-                          {workout.description && (
-                            <p className="text-sm text-muted-foreground mt-2 break-words">
-                              {
-                                workout.description
-                              }
-                            </p>
-                          )}
-                        </div>
-
-                        <div className="flex flex-col gap-2 w-full lg:w-auto">
-                          <div className="flex flex-wrap gap-2">
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() =>
-                                setEditingWorkout(
-                                  workout
-                                )
-                              }
-                            >
-                              <Edit className="h-4 w-4" />
-                            </Button>
-
-                            <Button
-                              variant="ghost"
-                              size="icon"
-                              onClick={() =>
-                                handleDeleteWorkout(
-                                  workout.id
-                                )
-                              }
-                            >
-                              <Trash2 className="h-4 w-4 text-destructive" />
-                            </Button>
-
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={() =>
-                                handleCopyWorkout(
-                                  workout
-                                )
-                              }
-                            >
-                              <Send className="mr-2 h-4 w-4" />
-                              Copiar treino
-                            </Button>
-                          </div>
-
-                          <WorkoutShareCard
-                            workout={workout}
-                            athleteName={
-                              student.name
-                            }
-                          />
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )
+            <Badge
+              variant="outline"
+              className={getWorkoutStatusColor(
+                workout.status
               )}
+            >
+              {workout.status === 'completed'
+                ? 'Concluído'
+                : workout.status === 'skipped'
+                ? 'Pulado'
+                : 'Pendente'}
+            </Badge>
+          </div>
+
+          {/* DATA */}
+          <p className="text-xs text-muted-foreground mb-3">
+            {format(
+              new Date(
+                workout.scheduled_date
+              ),
+              "EEEE, d 'de' MMMM",
+              {
+                locale: ptBR,
+              }
+            )}
+          </p>
+
+          {/* BADGES */}
+          <div className="flex flex-wrap justify-center gap-2 mb-4">
+
+            <Badge variant="secondary">
+              {getWorkoutTypeLabel(
+                workout.workout_type
+              )}
+            </Badge>
+
+            {workout.target_distance_km && (
+              <Badge variant="outline">
+                {
+                  workout.target_distance_km
+                } km
+              </Badge>
+            )}
+
+            {workout.target_pace_min_km && (
+              <Badge variant="outline">
+                {formatPace(
+                  Number(
+                    workout.target_pace_min_km
+                  )
+                )}
+              </Badge>
+            )}
+          </div>
+
+          {/* DESCRIÇÃO */}
+          {workout.description && (
+            <div className="flex justify-center">
+              <p
+                className="
+                  text-center
+                  text-base
+                  md:text-lg
+                  font-semibold
+                  leading-relaxed
+                  text-black
+                  max-w-[90%]
+                "
+              >
+                {workout.description}
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* BOTÕES */}
+        <div className="flex flex-wrap justify-center gap-2 mt-4">
+
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={(e) => {
+              e.stopPropagation()
+              setEditingWorkout(workout)
+            }}
+          >
+            <Edit className="h-4 w-4" />
+          </Button>
+
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={(e) => {
+              e.stopPropagation()
+              handleDeleteWorkout(
+                workout.id
+              )
+            }}
+          >
+            <Trash2 className="h-4 w-4 text-destructive" />
+          </Button>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation()
+              handleCopyWorkout(
+                workout
+              )
+            }}
+          >
+            <Send className="mr-2 h-4 w-4" />
+            Copiar
+          </Button>
+        </div>
+      </div>
+
+      {/* BANNER */}
+      {selectedWorkoutId ===
+        workout.id && (
+        <div
+          className="
+            w-full
+            flex
+            justify-center
+            overflow-hidden
+            pt-3
+            animate-in
+            fade-in-0
+            zoom-in-95
+          "
+          onClick={(e) =>
+            e.stopPropagation()
+          }
+        >
+          <div
+            className="
+              w-full
+              max-w-[280px]
+              scale-[0.88]
+              origin-top
+            "
+          >
+            <WorkoutShareCard
+              workout={workout}
+              athleteName={
+                student.name
+              }
+            />
+          </div>
+        </div>
+      )}
+    </div>
+  </CardContent>
+</Card>
+              ))}
             </div>
           </TabsContent>
 
@@ -710,22 +734,17 @@ export function StudentDetail({
 
       <CreateWorkoutDialog
         open={showCreateWorkout}
-        onOpenChange={
-          setShowCreateWorkout
-        }
+        onOpenChange={setShowCreateWorkout}
         studentId={student.id}
         student={student}
-        onSuccess={() =>
-          mutateWorkouts()
-        }
+        onSuccess={() => mutateWorkouts()}
       />
 
       {editingWorkout && (
         <EditWorkoutDialog
           open={!!editingWorkout}
           onOpenChange={(open) =>
-            !open &&
-            setEditingWorkout(null)
+            !open && setEditingWorkout(null)
           }
           workout={editingWorkout}
           onSuccess={() => {

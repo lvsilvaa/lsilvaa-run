@@ -25,7 +25,15 @@ export async function GET(
       LIMIT 1
     `
 
-    return NextResponse.json(student[0])
+    return NextResponse.json(
+      student[0],
+      {
+        headers: {
+          'Cache-Control':
+            'no-store, no-cache, must-revalidate',
+        },
+      }
+    )
   } catch (error) {
     console.error(error)
 
@@ -72,6 +80,11 @@ export async function PUT(
         z5_min = ${body.z5_min || null},
         z5_max = ${body.z5_max || null},
 
+        avatar_url = COALESCE(
+          ${body.avatar_url || null},
+          avatar_url
+        ),
+
         updated_at = NOW()
 
       WHERE id = ${Number(id)}
@@ -88,16 +101,74 @@ export async function PUT(
     )
   }
 }
+
+// =======================
+// UPDATE AVATAR
+// =======================
+
 export async function PATCH(
   request: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
+  { params }: Params
 ) {
-  const { id } = await params
-  const { avatar_url } = await request.json()
-  await sql`
-    UPDATE students
-    SET avatar_url = ${avatar_url}, updated_at = NOW()
-    WHERE id = ${Number(id)}
-  `
-  return NextResponse.json({ success: true })
+  try {
+    const { id } = await params
+    const body = await request.json()
+
+    if (body.avatar_url !== undefined) {
+      const updated = await sql`
+        UPDATE students
+        SET avatar_url = ${body.avatar_url}, updated_at = NOW()
+        WHERE id = ${Number(id)}
+        RETURNING *
+      `
+
+      return NextResponse.json({ success: true, student: updated[0] })
+    }
+
+    if (body.is_active !== undefined) {
+      const updated = await sql`
+        UPDATE students
+        SET is_active = ${body.is_active}, updated_at = NOW()
+        WHERE id = ${Number(id)}
+        RETURNING *
+      `
+
+      return NextResponse.json({ success: true, student: updated[0] })
+    }
+
+    return NextResponse.json(
+      { error: 'Nenhum campo válido enviado' },
+      { status: 400 }
+    )
+  } catch (error) {
+    console.error(error)
+
+    return NextResponse.json(
+      { error: 'Erro ao atualizar aluno' },
+      { status: 500 }
+    )
+  }
+}
+
+export async function DELETE(
+  request: NextRequest,
+  { params }: Params
+) {
+  try {
+    const { id } = await params
+
+    await sql`
+      DELETE FROM students
+      WHERE id = ${Number(id)}
+    `
+
+    return NextResponse.json({ success: true })
+  } catch (error) {
+    console.error(error)
+
+    return NextResponse.json(
+      { error: 'Erro ao excluir aluno' },
+      { status: 500 }
+    )
+  }
 }

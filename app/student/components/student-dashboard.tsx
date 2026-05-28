@@ -5,6 +5,7 @@ import { WeeklyVolumeCard } from './weekly-volume-card'
 import { formatDistance } from '@/lib/format-distance'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { StudentProfileDialog } from './student-profile-dialog'
 import useSWR from 'swr'
 import {
   format,
@@ -48,6 +49,7 @@ import {
   Timer,
   Route,
   Activity,
+  User,
   Trash2,
   ImportIcon,
   Camera,
@@ -95,8 +97,14 @@ export function StudentDashboard({
   const [uploading, setUploading] =
     useState(false)
 
+    const [studentProfile, setStudentProfile] = useState(student)
+
+    const [showProfileDialog, setShowProfileDialog] = useState(false)
+
   const [avatar, setAvatar] =
     useState<string | null>(student.avatar_url || null)
+
+    
 
   const [stravaImportData, setStravaImportData] =
     useState<{
@@ -215,71 +223,91 @@ export function StudentDashboard({
     }
   }
 
-  async function handleAvatarUpload(
-    e: React.ChangeEvent<HTMLInputElement>
-  ) {
-    const file = e.target.files?.[0]
+ async function handleAvatarUpload(
+  e: React.ChangeEvent<HTMLInputElement>
+) {
+  const file = e.target.files?.[0]
 
-    if (!file) return
+  if (!file) return
 
-    try {
-      setUploading(true)
+  try {
+    setUploading(true)
 
-      const formData = new FormData()
+    const formData = new FormData()
 
-      formData.append('file', file)
+    formData.append('file', file)
 
-      const uploadRes = await fetch(
-          '/api/upload/avatar',
-        {
-          method: 'POST',
-          body: formData,
-        }
-      )
-
-      const uploadData =
-        await uploadRes.json()
-
-      if (!uploadRes.ok) {
-        throw new Error(
-          uploadData.error ||
-            'Erro ao enviar avatar'
-        )
+    // upload da imagem
+    const uploadRes = await fetch(
+      '/api/upload/avatar',
+      {
+        method: 'POST',
+        body: formData,
       }
+    )
 
-      const avatarUrl = uploadData.url
+    const uploadData = await uploadRes.json()
 
-      const saveRes = await fetch(
-        `/api/students/${student.id}`,
-        {
-          method: 'PATCH',
-          headers: {
-            'Content-Type':
-              'application/json',
-          },
-         body: JSON.stringify({ avatar_url: avatarUrl }),
-        }
+    console.log('UPLOAD DATA:', uploadData)
+
+    if (!uploadRes.ok) {
+      throw new Error(
+        uploadData.error ||
+          'Erro ao enviar avatar'
       )
-
-      if (!saveRes.ok) {
-        throw new Error(
-          'Erro ao salvar avatar'
-        )
-      }
-
-      setAvatar(avatarUrl)
-
-      toast.success(
-        'Avatar atualizado!'
-      )
-    } catch {
-      toast.error(
-        'Erro ao enviar foto'
-      )
-    } finally {
-      setUploading(false)
     }
+
+    if (!uploadData.url) {
+      throw new Error(
+        'URL da imagem não retornada'
+      )
+    }
+
+    const avatarUrl = uploadData.url
+
+    // salvar no banco
+    const saveRes = await fetch(
+      `/api/students/${student.id}`,
+      {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          avatar_url: avatarUrl,
+        }),
+      }
+    )
+
+    const saveData = await saveRes.json()
+
+    console.log('SAVE DATA:', saveData)
+
+    if (!saveRes.ok) {
+      throw new Error(
+        saveData.error ||
+          'Erro ao salvar avatar'
+      )
+    }
+
+    // atualizar tela
+    setAvatar(`${avatarUrl}?t=${Date.now()}`)
+
+    toast.success(
+      'Avatar atualizado!'
+    )
+  } catch (error) {
+    console.error(error)
+
+    toast.error(
+      error instanceof Error
+        ? error.message
+        : 'Erro ao enviar foto'
+    )
+  } finally {
+    setUploading(false)
   }
+}
 
   function formatPace(
     pace: number | null
@@ -411,6 +439,15 @@ async function handleStravaImport(activity: {
               {student.coach_name}
             </span>
           </span>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="text-accent  hover:text-white cursor-pointer"
+            onClick={() => setShowProfileDialog(true)}
+          >
+            <User className="mr-2 h-4 w-4 color-accent" />
+            Perfil
+          </Button>
 
           <Button
             variant="ghost"
@@ -418,7 +455,7 @@ async function handleStravaImport(activity: {
             className="text-white"
             onClick={handleLogout}
           >
-            <LogOut className="mr-2 h-4 w-4" />
+            <LogOut className="mr-2 h-4 w-4 cursor-pointer" />
             Sair
           </Button>
         </div>
@@ -436,22 +473,23 @@ async function handleStravaImport(activity: {
           {/* AVATAR */}
           <div className="relative group">
 
-            <div className="h-16 w-16 rounded-full overflow-hidden border-2 border-green-500 shadow-lg bg-zinc-800">
-
-              {avatar ? (
-                <Image
-                  src={avatar}
-                  alt={student.name}
-                  width={64}
-                  height={64}
-                  className="h-full w-full object-cover"
-                />
-              ) : (
-                <div className="h-full w-full flex items-center justify-center text-white text-2xl font-bold">
-                  {student.name?.charAt(0)}
-                </div>
-              )}
-            </div>
+           <div className="h-16 w-16 rounded-full overflow-hidden border-2 border-green-500 shadow-lg bg-zinc-800">
+                {avatar && avatar !== 'undefined' ? (
+                  <Image
+                    src={avatar}
+                    alt={student.name}
+                    width={64}
+                    height={64}
+                    unoptimized
+                    key={avatar}
+                    className="h-full w-full object-cover"
+                  />
+                ) : (
+                  <div className="h-full w-full flex items-center justify-center text-white text-2xl font-bold">
+                    {student.name?.charAt(0)}
+                  </div>
+                )}
+              </div>
 
             <label className="absolute inset-0 rounded-full bg-black/60 opacity-0 group-hover:opacity-100 transition-all cursor-pointer flex items-center justify-center">
 
@@ -476,7 +514,7 @@ async function handleStravaImport(activity: {
           <div>
 
             <h1 className="text-3xl font-bold text-white">
-              Olá, {student.name}
+              Olá, {studentProfile.name}
             </h1>
 
             <p className="text-zinc-400">
@@ -1036,5 +1074,14 @@ async function handleStravaImport(activity: {
         }
       />
     )}
+     <StudentProfileDialog
+          open={showProfileDialog}
+          onOpenChange={setShowProfileDialog}
+          student={studentProfile}
+          onSuccess={() => {
+           router.refresh()
+        }}
+        />
   </div>
+
 )}
