@@ -353,7 +353,7 @@ async function handleDeleteStudent(studentId: number) {
                   {coach.brand_name?.trim() || 'Lsilva Run'}
                 </h1>
 
-                <p className="text-muted-foreground">
+                <p className="text-black">
                   {coach.name}
                 </p>
 
@@ -572,8 +572,8 @@ async function handleDeleteStudent(studentId: number) {
                 >
                   <X className="h-4 w-4" />
                 </button>
-               <CardContent className="p-5">
-  <div className="flex flex-col items-center text-center gap-4 sm:flex-row sm:text-left sm:items-center sm:justify-between">
+               <CardContent className="p-2">
+                <div className="flex flex-col items-center text-center gap-4 sm:flex-row sm:text-left sm:items-center sm:justify-between">
 
     {/* Avatar + Info */}
     <div className="flex flex-col items-center text-center gap-2 min-w-0 sm:flex-row sm:text-left">
@@ -649,59 +649,73 @@ async function handleDeleteStudent(studentId: number) {
     </div>
 
     {/* Botões */}
-    <div className="grid grid-cols-1 gap-2 w-full sm:w-auto sm:min-w-[140px]">
-      <Button
-        onClick={() =>
-          router.push(`/coach/student/${student.id}`)
-        }
-        className="
-          w-3/4
-          bg-green-500
-          text-black
-          hover:bg-green-400
-          font-semibold
-        "
-      >
-        Ver aluno
-        <ChevronRight className="ml-2 h-4 w-4" />
-      </Button>
+                <div
+                className="
+                  grid
+                  grid-cols-1
+                  gap-2
+                  w-full
+                  sm:w-2/3
+                  sm:min-w-[140px]
+                  justify-items-center
+                "
+              >
+                <Button
+                  onClick={() =>
+                    router.push(`/coach/student/${student.id}`)
+                  }
+                  className="
+                    w-full
+                    sm:w-2/3
+                    bg-green-500
+                    text-black
+                    hover:bg-green-400
+                    font-semibold
+                  "
+                >
+                  Ver aluno
+                  <ChevronRight className="ml-2 h-4 w-4" />
+                </Button>
 
-      <Button
-        variant="outline"
-        onClick={() => {
-          setEditingStudent(student)
-          setShowAddStudent(true)
-        }}
-        className="
-          w-3/4
-          border-white/10
-          bg-destructive
-          text-white
-          hover:bg-white/10
-        "
-      >
-        <Pencil className="mr-2 h-4 w-4" />
-        Editar
-      </Button>
-       <Button
-            variant="outline"
-           onClick={() =>
-            handleToggleStudentStatus(student)
-            }
-            className={`
-             w-3/4
-              ${
-                student.is_active
-                  ? 'border-yellow-500/20 bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20'
-                  : 'border-green-500/20 bg-green-500/10 text-green-400 hover:bg-green-500/20'
-              }
-            `}
-          >
-            {student.is_active
-              ? 'Inativar'
-              : 'Ativar'}
-          </Button>
-    </div>
+                <Button
+                  variant="outline"
+                  onClick={() => {
+                    setEditingStudent(student)
+                    setShowAddStudent(true)
+                  }}
+                  className="
+                    w-full
+                    sm:w-2/3
+                    border-white/10
+                    bg-destructive
+                    text-white
+                    hover:bg-white/10
+                  "
+                >
+                  <Pencil className="mr-2 h-4 w-4" />
+                  Editar
+                </Button>
+
+                <Button
+                  variant="outline"
+                  onClick={() =>
+                    handleToggleStudentStatus(student)
+                  }
+                  className={`
+                    w-full
+                    sm:w-2/3
+                    ${
+                      student.is_active
+                        ? 'border-yellow-500/20 bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20'
+                        : 'border-green-500/20 bg-green-500/10 text-green-400 hover:bg-green-500/20'
+                    }
+                  `}
+                >
+                  {student.is_active
+                    ? 'Inativar'
+                    : 'Ativar'}
+                </Button>
+              </div>
   </div>
 </CardContent>
               </Card>
