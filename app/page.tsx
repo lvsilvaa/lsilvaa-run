@@ -10,12 +10,22 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs'
 import { toast } from 'sonner'
 import { Eye, EyeOff } from 'lucide-react'
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog'
 
 export default function LoginPage() {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [showCoachPassword, setShowCoachPassword] = useState(false)
   const [showStudentPassword, setShowStudentPassword] = useState(false)
+  const [showCoachRegister, setShowCoachRegister] = useState(false)
+  const [showForgotPassword, setShowForgotPassword] = useState(false)
+  const [resetVerified, setResetVerified] = useState(false)
 
   async function handleCoachLogin(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -46,6 +56,120 @@ export default function LoginPage() {
       setIsLoading(false)
     }
   }
+
+  async function handleCoachRequest(e: React.FormEvent<HTMLFormElement>) {
+  e.preventDefault()
+  setIsLoading(true)
+
+  const formData = new FormData(e.currentTarget)
+
+  const password = formData.get('password') as string
+  const confirmPassword = formData.get('confirmPassword') as string
+
+  if (password !== confirmPassword) {
+    toast.error('As senhas não conferem')
+    setIsLoading(false)
+    return
+  }
+
+  try {
+    const res = await fetch('/api/auth/coach-request', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: formData.get('name'),
+        email: formData.get('email'),
+        phone: formData.get('phone'),
+        city: formData.get('city'),
+        state: formData.get('state'),
+        cpf: formData.get('cpf'),
+        birth_date: formData.get('birth_date'),
+        password,
+      }),
+    })
+
+    const data = await res.json()
+
+    if (!res.ok) throw new Error(data.error)
+
+    toast.success('Solicitação enviada! Aguarde aprovação.')
+    setShowCoachRegister(false)
+  } catch (error) {
+    toast.error(error instanceof Error ? error.message : 'Erro ao cadastrar')
+  } finally {
+    setIsLoading(false)
+  }
+}
+
+async function handleVerifyReset(e: React.FormEvent<HTMLFormElement>) {
+  e.preventDefault()
+  setIsLoading(true)
+
+  const formData = new FormData(e.currentTarget)
+
+  try {
+    const res = await fetch('/api/auth/coach-reset-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'verify',
+        email: formData.get('email'),
+        cpf: formData.get('cpf'),
+        birth_date: formData.get('birth_date'),
+      }),
+    })
+
+    const data = await res.json()
+
+    if (!res.ok) throw new Error(data.error)
+
+    setResetVerified(true)
+    toast.success('Dados confirmados')
+  } catch (error) {
+    toast.error(error instanceof Error ? error.message : 'Dados inválidos')
+  } finally {
+    setIsLoading(false)
+  }
+}
+
+async function handleResetPassword(e: React.FormEvent<HTMLFormElement>) {
+  e.preventDefault()
+  setIsLoading(true)
+
+  const formData = new FormData(e.currentTarget)
+
+  if (formData.get('new_password') !== formData.get('confirm_password')) {
+    toast.error('As senhas não conferem')
+    setIsLoading(false)
+    return
+  }
+
+  try {
+    const res = await fetch('/api/auth/coach-reset-password', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        action: 'reset',
+        email: formData.get('email'),
+        cpf: formData.get('cpf'),
+        birth_date: formData.get('birth_date'),
+        new_password: formData.get('new_password'),
+      }),
+    })
+
+    const data = await res.json()
+
+    if (!res.ok) throw new Error(data.error)
+
+    toast.success('Senha redefinida com sucesso!')
+    setShowForgotPassword(false)
+    setResetVerified(false)
+  } catch (error) {
+    toast.error(error instanceof Error ? error.message : 'Erro ao redefinir senha')
+  } finally {
+    setIsLoading(false)
+  }
+}
 
   async function handleStudentLogin(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
@@ -235,6 +359,24 @@ export default function LoginPage() {
                           {isLoading ? 'Entrando...' : 'Entrar como treinador'}
                         </Button>
 
+                        <div className="flex items-center justify-between pt-2 text-sm">
+                            <button
+                              type="button"
+                              onClick={() => setShowCoachRegister(true)}
+                              className="text-green-400 hover:text-green-300"
+                            >
+                              Cadastrar treinador
+                            </button>
+
+                            <button
+                              type="button"
+                              onClick={() => setShowForgotPassword(true)}
+                              className="text-zinc-400 hover:text-white"
+                            >
+                              Esqueci minha senha
+                            </button>
+                          </div>
+
                       </form>
                     </TabsContent>
 
@@ -272,6 +414,7 @@ export default function LoginPage() {
                               }
                             </button>
                           </div>
+                          
                         </div>
 
                         <Button
@@ -281,7 +424,6 @@ export default function LoginPage() {
                         >
                           {isLoading ? 'Entrando...' : 'Entrar como aluno'}
                         </Button>
-
                       </form>
                     </TabsContent>
 
@@ -310,6 +452,78 @@ export default function LoginPage() {
         </footer>
 
       </div>
+      <Dialog open={showCoachRegister} onOpenChange={setShowCoachRegister}>
+        <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Cadastro de treinador</DialogTitle>
+            <DialogDescription>
+              Preencha seus dados. Sua conta será analisada e aprovada em breve.
+            </DialogDescription>
+          </DialogHeader>
+
+          <form onSubmit={handleCoachRequest} className="space-y-3">
+            <Input name="name" placeholder="Nome completo" required />
+            <Input name="email" type="email" placeholder="E-mail" required />
+            <Input name="phone" placeholder="Telefone" required />
+
+            <div className="grid grid-cols-2 gap-3">
+              <Input name="city" placeholder="Cidade" required />
+              <Input name="state" placeholder="Estado" required />
+            </div>
+
+            <Input name="cpf" placeholder="CPF" required />
+            <Input name="birth_date" type="date" required />
+
+            <Input name="password" type="password" placeholder="Senha" required />
+            <Input name="confirmPassword" type="password" placeholder="Confirmar senha" required />
+
+            <Button disabled={isLoading} className="w-full">
+              {isLoading ? 'Enviando...' : 'Enviar solicitação'}
+            </Button>
+          </form>
+        </DialogContent>
+      </Dialog>
+                <Dialog
+            open={showForgotPassword}
+            onOpenChange={(open) => {
+              setShowForgotPassword(open)
+              if (!open) setResetVerified(false)
+            }}
+          >
+            <DialogContent className="sm:max-w-md">
+              <DialogHeader>
+                <DialogTitle>Redefinir senha</DialogTitle>
+                <DialogDescription>
+                  Informe seus dados para liberar a redefinição.
+                </DialogDescription>
+              </DialogHeader>
+
+              {!resetVerified ? (
+                <form onSubmit={handleVerifyReset} className="space-y-3">
+                  <Input name="email" type="email" placeholder="E-mail" required />
+                  <Input name="cpf" placeholder="CPF" required />
+                  <Input name="birth_date" type="date" required />
+
+                  <Button disabled={isLoading} className="w-full">
+                    {isLoading ? 'Verificando...' : 'Verificar dados'}
+                  </Button>
+                </form>
+              ) : (
+                <form onSubmit={handleResetPassword} className="space-y-3">
+                  <Input name="email" type="email" placeholder="E-mail" required />
+                  <Input name="cpf" placeholder="CPF" required />
+                  <Input name="birth_date" type="date" required />
+                  <Input name="new_password" type="password" placeholder="Nova senha" required />
+                  <Input name="confirm_password" type="password" placeholder="Confirmar nova senha" required />
+
+                  <Button disabled={isLoading} className="w-full">
+                    {isLoading ? 'Salvando...' : 'Salvar nova senha'}
+                  </Button>
+                </form>
+              )}
+            </DialogContent>
+          </Dialog>
     </div>
+    
   )
 }

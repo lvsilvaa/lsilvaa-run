@@ -6,6 +6,7 @@ import { formatDistance } from '@/lib/format-distance'
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { StudentProfileDialog } from './student-profile-dialog'
+import { PersonalRecordsCard } from './personal-records-card'
 import useSWR from 'swr'
 import {
   format,
@@ -53,7 +54,15 @@ import {
   Trash2,
   ImportIcon,
   Camera,
+  Settings,
 } from 'lucide-react'
+
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 
 import { toast } from 'sonner'
 
@@ -100,6 +109,8 @@ export function StudentDashboard({
     const [studentProfile, setStudentProfile] = useState(student)
 
     const [showProfileDialog, setShowProfileDialog] = useState(false)
+
+    const [showProfilePage, setShowProfilePage] = useState(false)
 
   const [avatar, setAvatar] =
     useState<string | null>(student.avatar_url || null)
@@ -407,6 +418,14 @@ async function handleStravaImport(activity: {
     setStravaImportData(null)
   }
 
+    const totalFinishedActivities = logs.length
+
+    const totalKm = logs.reduce(
+      (acc, log) =>
+        acc + (Number(log.actual_distance_km) || 0),
+      0
+    )
+
  return (
   <div className="min-h-screen bg-gradient-to-br from-[#000428] to-[#2c3e50] ">
 
@@ -439,15 +458,34 @@ async function handleStravaImport(activity: {
               {student.coach_name}
             </span>
           </span>
-          <Button
-            variant="ghost"
-            size="sm"
-            className="text-accent  hover:text-white cursor-pointer"
-            onClick={() => setShowProfileDialog(true)}
-          >
-            <User className="mr-2 h-4 w-4 color-accent" />
-            Perfil
-          </Button>
+         <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-accent  "
+              >
+                <User className="mr-2 h-4 w-4" />
+                Perfil
+              </Button>
+            </DropdownMenuTrigger>
+
+            <DropdownMenuContent align="end" className=' border-sm '>
+              <DropdownMenuItem
+                onClick={() => setShowProfilePage(true)}
+              >
+                <User className="mr-2 h-4 w-4" />
+                Perfil
+              </DropdownMenuItem>
+
+              <DropdownMenuItem
+                onClick={() => setShowProfileDialog(true)}
+              >
+                <Settings className="mr-2 h-4 w-4" />
+                Configuração
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
 
           <Button
             variant="ghost"
@@ -463,8 +501,81 @@ async function handleStravaImport(activity: {
     </header>
 
     {/* MAIN */}
-    <main className="container space-y-8 p-8">
+    <main className="container space-y-8 px-4 py-6 md:p-8 overflow-x-hidden">
 
+      {showProfilePage && (
+          <section className="relative z-10 pt-5">
+            <Card className="border-white/10 bg-white/5 backdrop-blur-md">
+              <CardContent className="p-6">
+                <div className="flex flex-col items-center text-center gap-5">
+
+                  <div className="h-28 w-28 rounded-full overflow-hidden border-4 border-green-500 bg-zinc-800 shadow-lg">
+                    {avatar ? (
+                      <Image
+                        src={avatar}
+                        alt={studentProfile.name}
+                        width={112}
+                        height={112}
+                        unoptimized
+                        className="h-full w-full object-cover"
+                      />
+                    ) : (
+                      <div className="h-full w-full flex items-center justify-center text-white text-4xl font-bold">
+                        {studentProfile.name?.charAt(0)}
+                      </div>
+                    )}
+                  </div>
+
+                  <div>
+                    <h1 className="text-3xl font-bold text-white">
+                      {studentProfile.name}
+                    </h1>
+
+                    <p className="text-zinc-400">
+                      {studentProfile.email}
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 w-full max-w-xl">
+                    <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+                      <p className="text-sm text-zinc-400">
+                        Atividades finalizadas
+                      </p>
+
+                      <p className="text-3xl font-bold text-green-400">
+                        {totalFinishedActivities}
+                      </p>
+                    </div>
+
+                    <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+                      <p className="text-sm text-zinc-400">
+                        Km total percorrido
+                      </p>
+
+                      <p className="text-3xl font-bold text-green-400">
+                        {totalKm.toFixed(1)} km
+                      </p>
+                    </div>
+                    <div className="w-full">
+                      <PersonalRecordsCard />
+                    </div>
+                  </div>
+
+                  <Button
+                    variant="outline"
+                    className="border-white/10 bg-white/5 text-white hover:bg-white/10"
+                    onClick={() => setShowProfilePage(false)}
+                  >
+                    Voltar ao dashboard
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
+          </section>
+        )}
+
+    {!showProfilePage && (
+      <>
       {/* HERO */}
       <div className="space-y-4 py-5">
 
@@ -539,7 +650,7 @@ async function handleStravaImport(activity: {
       {/* TREINO + STRAVA */}
       <section className="space-y-4 pb-8">
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-12 overflow-hidden">
 
           {/* TREINO */}
           <div className="lg:col-span-8">
@@ -579,7 +690,7 @@ async function handleStravaImport(activity: {
                 }
               >
 
-                <CardContent className="pt-6 h-full">
+               <CardContent className="p-4 sm:pt-6 h-full overflow-hidden">
 
                   <div className="flex flex-col justify-between h-full">
 
@@ -668,15 +779,15 @@ async function handleStravaImport(activity: {
                       <div className="pt-6">
 
                         <Button
-                          onClick={() =>
-                            handleStartWorkout(
-                              todayWorkout
-                            )
-                          }
-                        >
-                          <Play className="mr-2 h-4 w-4" />
-                          Fazer treino
-                        </Button>
+                            variant="outline"
+                            size="sm"
+                            className="w-full sm:w-auto shrink-0 bg-white/5"
+                            onClick={() =>
+                              handleStartWorkout(workout)
+                            }
+                          >
+                            Fazer treino
+                          </Button>
                       </div>
                     )}
                   </div>
@@ -776,7 +887,7 @@ async function handleStravaImport(activity: {
 
                   <CardContent className="p-4">
 
-                    <div className="flex items-start justify-between gap-4">
+                    <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
 
                       <div className="flex-1">
 
@@ -1055,6 +1166,8 @@ async function handleStravaImport(activity: {
   )}
 </TabsContent>
       </Tabs>
+      </>
+      )}
     </main>
 
     {/* DIALOG */}

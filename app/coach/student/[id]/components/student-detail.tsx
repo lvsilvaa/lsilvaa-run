@@ -471,20 +471,15 @@ export function StudentDetail({
           defaultValue="workouts"
           className="space-y-6"
         >
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className=" bg-accent/40 text-black grid w-full grid-cols-2">
             <TabsTrigger value="workouts">
-              <Calendar className="h-4 w-4 mr-2" />
+              <Calendar className="h-4 w-6 mr-2" />
               Treinos
             </TabsTrigger>
 
             <TabsTrigger value="history">
-              <Route className="h-4 w-4 mr-2" />
+              <Route className="h-4 w-6 mr-2" />
               Histórico
-            </TabsTrigger>
-
-            <TabsTrigger value="metrics">
-              <TrendingUp className="h-4 w-4 mr-2" />
-              Métricas
             </TabsTrigger>
           </TabsList>
 
@@ -717,13 +712,6 @@ export function StudentDetail({
           </TabsContent>
 
           <TabsContent value="history">
-            <StudentMetrics
-              logs={logs}
-              student={student}
-            />
-          </TabsContent>
-
-          <TabsContent value="metrics">
             <StudentMetrics
               logs={logs}
               student={student}

@@ -23,7 +23,8 @@ export async function POST(request: NextRequest) {
           email,
           password_hash,
           approved,
-          is_admin
+          is_admin,
+          is_active
         FROM coaches
         WHERE email = ${email}
       `
@@ -65,6 +66,12 @@ export async function POST(request: NextRequest) {
         { status: 403 }
       )
     }
+    if (role === 'coach' && user.is_active === false) {
+        return NextResponse.json(
+          { error: 'Sua conta está inativa. Entre em contato com o administrador.' },
+          { status: 403 }
+        )
+      }
 
     // valida senha
     const isValid = await verifyPassword(

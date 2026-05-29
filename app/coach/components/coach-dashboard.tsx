@@ -47,7 +47,19 @@ const fetcher = async (url: string) => {
   return res.json()
 }
 
-type CoachDashboardProps = {
+type CoachDashboardProps =  {
+  registeredCoaches: {
+  id: number
+  name: string
+  email: string
+  phone?: string | null
+  city?: string | null
+  state?: string | null
+  approved: boolean
+  is_active: boolean
+  is_admin: boolean
+  created_at: string
+}[]
   coach: Coach
   initialStudents: Student[]
   pendingCoaches: {
@@ -62,6 +74,7 @@ export function CoachDashboard({
   coach,
   initialStudents,
   pendingCoaches,
+  registeredCoaches,
 }: CoachDashboardProps) {
 
   
@@ -80,6 +93,11 @@ export function CoachDashboard({
 
   const [editingStudent, setEditingStudent] =
     useState<Student | null>(null)
+
+    const [showCoachesList, setShowCoachesList] = useState(false)
+
+const [coachesList, setCoachesList] =
+  useState(registeredCoaches)
 
   const { data: studentsData, mutate } =
     useSWR<{ students: Student[] }>(
@@ -110,7 +128,89 @@ const filteredStudents =
 
     router.push('/')
   }
+  async function handleApproveCoach(coachId: number) {
+  try {
+    const res = await fetch(`/api/coaches/${coachId}/approve`, {
+      method: 'PATCH',
+    })
 
+    if (!res.ok) throw new Error()
+
+    toast.success('Coach aprovado com sucesso')
+
+    setPendingList((current) =>
+      current.filter((coach) => coach.id !== coachId)
+    )
+  } catch {
+    toast.error('Erro ao aprovar coach')
+  }
+}
+
+async function handleRejectCoach(coachId: number) {
+  if (!confirm('Deseja rejeitar este cadastro?')) return
+
+  try {
+    const res = await fetch(`/api/coaches/${coachId}/reject`, {
+      method: 'DELETE',
+    })
+
+    if (!res.ok) throw new Error()
+
+    toast.success('Coach rejeitado')
+
+    setPendingList((current) =>
+      current.filter((coach) => coach.id !== coachId)
+    )
+  } catch {
+    toast.error('Erro ao rejeitar coach')
+  }
+}
+
+async function handleToggleCoachStatus(targetCoach: {
+  id: number
+  is_active: boolean
+}) {
+  try {
+    const res = await fetch(`/api/coaches/${targetCoach.id}/status`, {
+      method: 'PATCH',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        is_active: !targetCoach.is_active,
+      }),
+    })
+
+    const data = await res.json()
+
+    if (!res.ok) {
+      throw new Error(data.error || 'Erro ao alterar status')
+    }
+
+    toast.success(
+      targetCoach.is_active
+        ? 'Coach inativado'
+        : 'Coach ativado'
+    )
+
+    setCoachesList((current) =>
+      current.map((item) =>
+        item.id === targetCoach.id
+          ? {
+              ...item,
+              is_active: !targetCoach.is_active,
+            }
+          : item
+      )
+    )
+  } catch (error) {
+    toast.error(
+      error instanceof Error
+        ? error.message
+        : 'Erro ao alterar status'
+    )
+  }
+}
   async function handleToggleStudentStatus(student: Student) {
   if (!student?.id) {
     toast.error('ID do aluno não encontrado')
@@ -177,12 +277,24 @@ async function handleDeleteStudent(studentId: number) {
   return (
     <div className="min-h-screen bg-gradient-to-br from-[#000428] to-[#2c3e50]">
       <header className="sticky top-5 z-50 border-b">
+        
         <div className="container flex h-16 items-center justify-between">
           <div className="flex items-center">
             <Logo size="sm" className="px-8" />
             <Logo size="sm" className="-ml-8 opacity-20 scale-95" />
             <Logo size="sm" className="-ml-8 opacity-10 scale-90 px-8" />
           </div>
+      <div className='flex justify-between space-x-4'>
+          {isAdmin && (
+              <Button
+                variant="ghost"
+                size="sm"
+                className="text-accent/40 hover:text-black"
+                onClick={() => setShowCoachesList((current) => !current)}
+              >
+                Coaches cadastrados
+              </Button>
+            )}
 
           <Button
             variant="ghost"
@@ -193,6 +305,7 @@ async function handleDeleteStudent(studentId: number) {
             <LogOut className="mr-2 h-4 w-4" />
             Sair
           </Button>
+          </div>
         </div>
       </header>
 
@@ -200,7 +313,9 @@ async function handleDeleteStudent(studentId: number) {
         <div className="fixed inset-0 flex items-center justify-center pointer-events-none z-0">
           <Image
             src="/images/logo.png"
-            alt=""
+            alt="Logo"
+             loading="eager"
+             priority
             width={500}
             height={500}
             className="w-120 h-auto opacity-10"
@@ -250,6 +365,126 @@ async function handleDeleteStudent(studentId: number) {
             </div>
           </CardContent>
         </Card>
+        {isAdmin && pendingList.length > 0 && (
+  <div className="space-y-4 relative z-10 mb-8">
+    <h2 className="text-xl font-semibold text-white">
+      Coaches pendentes
+    </h2>
+
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+      {pendingList.map((coach) => (
+        <Card
+          key={coach.id}
+          className="border-yellow-500/20 bg-yellow-500/5 backdrop-blur-md"
+        >
+          <CardContent className="p-5 space-y-3">
+            <div>
+              <h3 className="font-semibold text-white">
+                {coach.name}
+              </h3>
+
+              <p className="text-sm text-zinc-400">
+                {coach.email}
+              </p>
+
+              <p className="text-sm text-zinc-400">
+                {coach.phone || '-'}
+              </p>
+
+              <p className="text-sm text-zinc-400">
+                {coach.city || '-'} / {coach.state || '-'}
+              </p>
+            </div>
+
+            <div className="flex gap-2">
+              <Button
+                className="flex-1 bg-green-500 text-black hover:bg-green-400"
+                onClick={() => handleApproveCoach(coach.id)}
+              >
+                Aprovar
+              </Button>
+
+              <Button
+                variant="destructive"
+                className="flex-1"
+                onClick={() => handleRejectCoach(coach.id)}
+              >
+                Rejeitar
+              </Button>
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  </div>
+)}
+
+{isAdmin && showCoachesList && (
+  <div className="space-y-4 relative z-10 mb-8">
+    <h2 className="text-xl font-semibold text-white">
+      Coaches cadastrados
+    </h2>
+
+    <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
+      {coachesList.map((item) => (
+        <Card
+          key={item.id}
+          className="border-white/10 bg-white/5 backdrop-blur-md"
+        >
+          <CardContent className="p-5 space-y-4">
+            <div>
+              <h3 className="font-semibold text-white">
+                {item.name}
+              </h3>
+
+              <p className="text-sm text-zinc-400">
+                {item.email}
+              </p>
+
+              <p className="text-sm text-zinc-400">
+                {item.phone || '-'}
+              </p>
+
+              <p className="text-sm text-zinc-400">
+                {item.city || '-'} / {item.state || '-'}
+              </p>
+
+              <Badge
+                className={
+                  item.is_active
+                    ? 'mt-3 bg-green-500/10 text-green-400 border border-green-500/20'
+                    : 'mt-3 bg-red-500/10 text-red-400 border border-red-500/20'
+                }
+              >
+                {item.is_active ? 'Ativo' : 'Inativo'}
+              </Badge>
+
+              {item.is_admin && (
+                <Badge className="mt-3 ml-2">
+                  Admin
+                </Badge>
+              )}
+            </div>
+
+            {!item.is_admin && (
+              <Button
+                variant="outline"
+                className={
+                  item.is_active
+                    ? 'w-full border-red-500/20 bg-red-500/10 text-red-400 hover:bg-red-500/20'
+                    : 'w-full border-green-500/20 bg-green-500/10 text-green-400 hover:bg-green-500/20'
+                }
+                onClick={() => handleToggleCoachStatus(item)}
+              >
+                {item.is_active ? 'Inativar coach' : 'Ativar coach'}
+              </Button>
+            )}
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  </div>
+)}
 
         {/* Alunos */}
         <div className="space-y-4 relative z-10">
@@ -283,7 +518,7 @@ async function handleDeleteStudent(studentId: number) {
                   Inativos ({inactiveStudents.length})
                 </Button>
               </div>
-                        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+                        <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
             {filteredStudents.map((student) => ( 
               <Card
                   key={student.id}
@@ -341,7 +576,7 @@ async function handleDeleteStudent(studentId: number) {
   <div className="flex flex-col items-center text-center gap-4 sm:flex-row sm:text-left sm:items-center sm:justify-between">
 
     {/* Avatar + Info */}
-    <div className="flex flex-col items-center text-center gap-3 min-w-0 sm:flex-row sm:text-left">
+    <div className="flex flex-col items-center text-center gap-2 min-w-0 sm:flex-row sm:text-left">
 
       <div
         className="
@@ -389,11 +624,11 @@ async function handleDeleteStudent(studentId: number) {
       </div>
 
       <div className="min-w-0 w-full">
-        <h3 className="font-semibold text-white text-base leading-tight break-words">
+        <h3 className="font-semibold text-white text-lg leading-tight break-words">
           {student.name}
         </h3>
 
-        <p className="text-sm text-zinc-400 break-all">
+        <p className="text-xs text-zinc-400 break-all">
           {student.email}
         </p>
 
@@ -420,7 +655,7 @@ async function handleDeleteStudent(studentId: number) {
           router.push(`/coach/student/${student.id}`)
         }
         className="
-          w-full
+          w-3/4
           bg-green-500
           text-black
           hover:bg-green-400
@@ -438,7 +673,7 @@ async function handleDeleteStudent(studentId: number) {
           setShowAddStudent(true)
         }}
         className="
-          w-full
+          w-3/4
           border-white/10
           bg-destructive
           text-white
@@ -454,7 +689,7 @@ async function handleDeleteStudent(studentId: number) {
             handleToggleStudentStatus(student)
             }
             className={`
-              w-full
+             w-3/4
               ${
                 student.is_active
                   ? 'border-yellow-500/20 bg-yellow-500/10 text-yellow-400 hover:bg-yellow-500/20'

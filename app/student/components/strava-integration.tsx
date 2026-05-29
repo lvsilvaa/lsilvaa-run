@@ -60,10 +60,9 @@ export function StravaIntegration({ onImportActivity }: StravaIntegrationProps) 
   const isConnected = statusData?.connected || false
   const activities = activitiesData?.activities || []
 
-  async function handleConnect() {
-    setIsLoading(true)
-    window.location.href = '/api/strava/connect'
-  }
+  function handleConnect() {
+  window.location.href = '/api/strava/connect'
+}
 
   async function handleDisconnect() {
     if (!confirm('Deseja desconectar sua conta do Strava?')) return
@@ -107,8 +106,8 @@ export function StravaIntegration({ onImportActivity }: StravaIntegrationProps) 
       <CardContent className="space-y-3">
         {!isConnected ? (
           <Button 
-            onClick={handleConnect} 
-            disabled={isLoading}
+            type="button"
+             onClick={handleConnect}
             className="w-full"
             variant="outline"
           >
@@ -124,7 +123,13 @@ export function StravaIntegration({ onImportActivity }: StravaIntegrationProps) 
                   Importar Atividade
                 </Button>
               </DialogTrigger>
-              <DialogContent className="sm:max-w-lg max-h-[80vh] overflow-y-auto">
+              <DialogContent className="
+                  w-[95vw]
+                  max-w-lg
+                  max-h-[85vh]
+                  overflow-y-auto
+                  rounded-2xl
+                ">
                 <DialogHeader>
                   <DialogTitle>Atividades do Strava</DialogTitle>
                   <DialogDescription>
@@ -158,7 +163,7 @@ export function StravaIntegration({ onImportActivity }: StravaIntegrationProps) 
                               {format(new Date(activity.start_date), "d MMM", { locale: ptBR })}
                             </span>
                           </div>
-                          <div className="grid grid-cols-3 gap-2 text-sm">
+                          <div className="flex flex-col gap-1 text-sm sm:grid sm:grid-cols-3">
                             <div>
                               <span className="text-muted-foreground">Dist: </span>
                               <span className="font-medium">{activity.distance_km} km</span>

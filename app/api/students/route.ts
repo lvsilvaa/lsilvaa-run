@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { sql } from '@/lib/db'
 import { hashPassword } from '@/lib/auth'
+import {getSession} from '@/lib/auth'
 
 // =======================
 // GET STUDENTS
@@ -8,11 +9,21 @@ import { hashPassword } from '@/lib/auth'
 
 export async function GET() {
   try {
+    const session = await getSession()
+
+    if (!session || session.role !== 'coach') {
+      return NextResponse.json(
+        { error: 'Não autorizado' },
+        { status: 401 }
+      )
+    }
+
     const students = await sql`
-      SELECT *
-      FROM students
-      ORDER BY created_at DESC
-    `
+  SELECT *
+  FROM students
+  WHERE coach_id = ${session.id}
+  ORDER BY name
+`
 
     return NextResponse.json({
       students,
@@ -21,12 +32,8 @@ export async function GET() {
     console.error(error)
 
     return NextResponse.json(
-      {
-        error: 'Erro ao buscar alunos',
-      },
-      {
-        status: 500,
-      }
+      { error: 'Erro ao buscar alunos' },
+      { status: 500 }
     )
   }
 }

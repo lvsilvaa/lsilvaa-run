@@ -47,6 +47,14 @@ export function WorkoutStepsDisplay({ steps, student }: WorkoutStepsDisplayProps
       repeat: 'bg-orange-500/10 text-orange-500 border-orange-500/20'
     }
 
+    const stepTypeTextColors = {
+      warmup: 'text-blue-500',
+      run: 'text-red-500',
+      recovery: 'text-green-500',
+      cooldown: 'text-purple-500',
+      repeat: 'text-orange-500'
+    }
+
     return (
       <div key={step.id} className={isNested ? 'ml-6' : ''}>
         <div className="flex items-start gap-3 mb-3">
@@ -54,7 +62,7 @@ export function WorkoutStepsDisplay({ steps, student }: WorkoutStepsDisplayProps
             {stepTypeLabels[step.type]}
           </Badge>
           
-          <div className="flex-1">
+          <div className="flex-1 flex-row">
             {/* Duração */}
             {step.duration_type === 'distance' && step.duration_value && (
               <span className="text-white font-medium">
@@ -74,7 +82,11 @@ export function WorkoutStepsDisplay({ steps, student }: WorkoutStepsDisplayProps
             
             {/* Zona/Pace alvo */}
             {step.target_type === 'pace' && step.target_from && (
-              <span className="text-muted-foreground ml-2">
+              <span className={`ml-2 ${
+                stepTypeTextColors[
+                  step.type as keyof typeof stepTypeTextColors
+                ] || 'text-white'
+              }`}>
                 em {getStudentZone(step.target_from)}
                 {step.target_from !== step.target_to && ` - ${getStudentZone(step.target_to)}`}
               </span>
@@ -110,7 +122,7 @@ export function WorkoutStepsDisplay({ steps, student }: WorkoutStepsDisplayProps
 
   return (
     <Card className="mt-4 border-accent/20 bg-white/5 backdrop-blur">
-      <CardContent className="pt-6">
+      <CardContent className=" pt-3">
         <h4 className="text-sm font-semibold text-white mb-4">
           Estrutura do Treino
         </h4>
