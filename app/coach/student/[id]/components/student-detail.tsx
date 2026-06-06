@@ -29,6 +29,7 @@ import {
 
 import { Logo } from '@/components/logo'
 import { Button } from '@/components/ui/button'
+import {PeriodWorkoutBuilder} from '@/components/periodWorkout'
 
 import {
   Card,
@@ -89,6 +90,9 @@ export function StudentDetail({
     useState<Workout | null>(null)
     const [selectedWorkoutId, setSelectedWorkoutId] =
   useState<number | null>(null)
+
+  const [showPeriodBuilder, setShowPeriodBuilder] =
+  useState(false)
 
   const { data: workoutsData, mutate: mutateWorkouts } =
     useSWR<{ workouts: Workout[] }>(
@@ -487,7 +491,7 @@ export function StudentDetail({
             value="workouts"
             className="space-y-4"
           >
-            <div className="flex justify-between items-center">
+            <div className="flex justify-between items-end">
               <h2 className="text-lg text-white font-semibold">
                 Treinos Programados
               </h2>
@@ -497,10 +501,23 @@ export function StudentDetail({
                   setShowCreateWorkout(true)
                 }
               >
-                <Plus className="mr-2 h-4 w-4" />
+                <Plus className="mr-2 h-4 w-4 " />
                 Novo Treino
               </Button>
+   </div>
+   <div className='flex justify-end items-end'>
+               <Button
+                variant="outline"
+                onClick={() =>
+                  router.push(`/coach/student/${student.id}/period-builder`)
+                }
+              >
+                <Calendar className="h-4 w-6 mr-2" />
+                Montar por período
+              </Button>
             </div>
+
+           
 
             <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-4">
               {sortedWorkouts.map((workout, index) => (
@@ -741,6 +758,12 @@ export function StudentDetail({
           }}
         />
       )}
+      <PeriodWorkoutBuilder
+        open={showPeriodBuilder}
+        onOpenChange={setShowPeriodBuilder}
+        studentId={student.id}
+        onSuccess={() => mutateWorkouts()}
+      />
     </div>
   )
 }
