@@ -778,16 +778,16 @@ async function handleStravaImport(activity: {
                     {!todayWorkoutCompleted && (
                       <div className="pt-6">
 
-                        <Button
-                            variant="outline"
-                            size="sm"
-                            className="w-full sm:w-auto shrink-0 bg-white/5"
-                            onClick={() =>
-                              handleStartWorkout(workout)
-                            }
-                          >
-                            Fazer treino
-                          </Button>
+                       <Button
+                          variant="outline"
+                          size="sm"
+                          className="w-full sm:w-auto shrink-0 bg-white/5"
+                          onClick={() =>
+                            handleStartWorkout(todayWorkout)
+                          }
+                        >
+                          Fazer treino
+                        </Button>
                       </div>
                     )}
                   </div>
