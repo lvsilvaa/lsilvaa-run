@@ -194,12 +194,13 @@ function calculateTotals(steps: any[]) {
     try {
       setIsSaving(true)
 
-      const workoutsToSave = days.filter(
+     const workoutsToSave = days.filter(
         (day) =>
           day.title ||
           day.description ||
           day.target_distance_km ||
-          day.target_duration_minutes
+          day.target_duration_minutes ||
+          day.steps.length > 0
       )
 
       if (workoutsToSave.length === 0) {

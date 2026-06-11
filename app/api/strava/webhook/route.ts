@@ -11,7 +11,6 @@ export async function GET(request: NextRequest) {
   const challenge = params.get('hub.challenge')
 
   if (mode === 'subscribe' && token === STRAVA_VERIFY_TOKEN) {
-    console.log('✅ Strava webhook verificado com sucesso')
     return NextResponse.json({ 'hub.challenge': challenge })
   }
 
@@ -26,42 +25,32 @@ export async function POST(request: NextRequest) {
     const { object_type, aspect_type, object_id, owner_id } = body
 
     if (object_type !== 'activity' || aspect_type !== 'create') {
-      console.log('⏭️ [2] Ignorado — não é criação de atividade:', object_type, aspect_type)
+      console.log('⏭️ [2] Ignorado:', object_type, aspect_type)
       return NextResponse.json({ status: 'ignored' })
     }
 
-    console.log('🔍 [3] Buscando aluno com strava_athlete_id:', owner_id.toString())
-
+    // Buscar aluno
     const result = await sql`
-      SELECT 
-        id,
-        strava_access_token,
-        strava_refresh_token,
-        strava_token_expires_at
+      SELECT id, strava_access_token, strava_refresh_token, strava_token_expires_at
       FROM students
       WHERE strava_athlete_id = ${owner_id.toString()}
       LIMIT 1
     `
 
-    console.log('🔍 [4] Resultado da busca:', JSON.stringify(result))
-
     if (!result || result.length === 0) {
-      console.log('⚠️ [5] Nenhum aluno encontrado para athlete_id:', owner_id)
+      console.log('⚠️ [3] Nenhum aluno encontrado para athlete_id:', owner_id)
       return NextResponse.json({ status: 'student_not_found' })
     }
 
     const student = result[0]
-    console.log('✅ [6] Aluno encontrado, id:', student.id)
+    console.log('✅ [4] Aluno encontrado, id:', student.id)
 
     // Verificar e renovar token se necessário
     let accessToken = student.strava_access_token
     const expiresAt = new Date(student.strava_token_expires_at).getTime()
-    const now = Date.now()
 
-    console.log('🕐 [7] Token expira em:', new Date(expiresAt).toISOString(), '| Agora:', new Date(now).toISOString())
-
-    if (now >= expiresAt - 60_000) {
-      console.log('🔄 [8] Renovando token...')
+    if (Date.now() >= expiresAt - 60_000) {
+      console.log('🔄 [5] Renovando token...')
       try {
         const newTokens = await refreshStravaToken(student.strava_refresh_token)
         await sql`
@@ -73,35 +62,35 @@ export async function POST(request: NextRequest) {
           WHERE id = ${student.id}
         `
         accessToken = newTokens.access_token
-        console.log('✅ [9] Token renovado com sucesso')
+        console.log('✅ [6] Token renovado')
       } catch (refreshErr) {
-        console.error('❌ [9] Erro ao renovar token:', refreshErr)
+        console.error('❌ [6] Erro ao renovar token:', refreshErr)
         return NextResponse.json({ status: 'token_refresh_failed' }, { status: 200 })
       }
     }
 
-    // Buscar detalhes da atividade
-    console.log('🌐 [10] Buscando atividade no Strava, id:', object_id)
+    // Buscar detalhes da atividade no Strava
+    console.log('🌐 [7] Buscando atividade:', object_id)
     const activityRes = await fetch(
       `https://www.strava.com/api/v3/activities/${object_id}`,
       { headers: { Authorization: `Bearer ${accessToken}` } }
     )
 
-    console.log('🌐 [11] Status da resposta Strava:', activityRes.status)
+    console.log('🌐 [8] Status Strava:', activityRes.status)
 
     if (!activityRes.ok) {
       const errText = await activityRes.text()
-      console.error('❌ [12] Erro ao buscar atividade:', errText)
+      console.error('❌ [9] Erro ao buscar atividade:', errText)
       return NextResponse.json({ status: 'activity_fetch_failed' }, { status: 200 })
     }
 
     const activity: StravaActivity = await activityRes.json()
-    console.log('✅ [13] Atividade recebida:', activity.name, '| Tipo:', activity.type, '| Distância:', activity.distance)
+    console.log('✅ [10] Atividade:', activity.name, '| Tipo:', activity.type)
 
-    // Verificar tipo
+    // Só importa corridas
     const tiposDeCorreida = ['Run', 'VirtualRun', 'TrailRun']
     if (!tiposDeCorreida.includes(activity.type)) {
-      console.log('⏭️ [14] Ignorado — tipo não é corrida:', activity.type)
+      console.log('⏭️ [11] Ignorado — não é corrida:', activity.type)
       return NextResponse.json({ status: 'not_a_run' })
     }
 
@@ -112,16 +101,31 @@ export async function POST(request: NextRequest) {
         AND strava_activity_id = ${object_id.toString()}
       LIMIT 1
     `
-    console.log('🔍 [15] Atividade já existe?', existing?.length > 0)
 
     if (existing && existing.length > 0) {
-      console.log('⏭️ [16] Atividade já importada:', object_id)
+      console.log('⏭️ [12] Atividade já importada:', object_id)
       return NextResponse.json({ status: 'already_imported' })
     }
 
-    // Converter e salvar
+    // Data da atividade (apenas a data, sem hora)
+    const activityDate = new Date(activity.start_date).toISOString().split('T')[0]
+    console.log('📅 [13] Data da atividade:', activityDate)
+
+    // Buscar treino agendado para o dia da atividade
+    const todayWorkout = await sql`
+      SELECT id FROM workouts
+      WHERE student_id = ${student.id}
+        AND scheduled_date = ${activityDate}
+        AND status = 'pending'
+      LIMIT 1
+    `
+
+    const workoutId = todayWorkout.length > 0 ? todayWorkout[0].id : null
+    console.log('🏋️ [14] Treino do dia encontrado:', workoutId ?? 'nenhum')
+
+    // Salvar log
     const converted = convertStravaActivity(activity)
-    console.log('💾 [17] Salvando no banco:', JSON.stringify(converted))
+    console.log('💾 [15] Salvando log no banco...')
 
     await sql`
       INSERT INTO workout_logs (
@@ -139,7 +143,7 @@ export async function POST(request: NextRequest) {
         notes
       ) VALUES (
         ${student.id},
-        NULL,
+        ${workoutId},
         ${activity.start_date},
         ${converted.distance_km},
         ${converted.duration_minutes},
@@ -149,12 +153,22 @@ export async function POST(request: NextRequest) {
         ${converted.average_heart_rate},
         ${converted.max_heart_rate},
         ${converted.strava_activity_id},
-        ${'Importado automaticamente do Strava: ' + activity.name}
+        ${activity.name}
       )
     `
 
-    console.log('✅ [18] Atividade salva com sucesso:', activity.name, '| Aluno:', student.id)
-    return NextResponse.json({ status: 'ok' })
+    // Marcar treino do dia como concluído
+    if (workoutId) {
+      await sql`
+        UPDATE workouts
+        SET status = 'completed', updated_at = NOW()
+        WHERE id = ${workoutId}
+      `
+      console.log('✅ [16] Treino marcado como concluído:', workoutId)
+    }
+
+    console.log('✅ [17] Atividade salva com sucesso:', activity.name)
+    return NextResponse.json({ status: 'ok', workout_completed: !!workoutId })
 
   } catch (error) {
     console.error('❌ [CATCH] Erro geral no webhook:', error)

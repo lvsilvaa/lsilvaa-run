@@ -10,6 +10,23 @@ export async function POST(req: NextRequest) {
 
   const body = await req.json()
 
+  // Data da atividade (apenas a parte da data, sem hora)
+  const activityDate = body.start_date
+    ? new Date(body.start_date).toISOString().split('T')[0]
+    : new Date().toISOString().split('T')[0]
+
+  // Buscar treino agendado para o dia da atividade
+  const todayWorkout = await sql`
+    SELECT id FROM workouts
+    WHERE student_id = ${session.id}
+      AND scheduled_date = ${activityDate}
+      AND status = 'pending'
+    LIMIT 1
+  `
+
+  const workoutId = todayWorkout.length > 0 ? todayWorkout[0].id : null
+
+  // Salvar o log vinculando ao treino do dia (se existir)
   await sql`
     INSERT INTO workout_logs (
       student_id,
@@ -24,7 +41,7 @@ export async function POST(req: NextRequest) {
       notes
     ) VALUES (
       ${session.id},
-      NULL,
+      ${workoutId},
       ${body.distance_km},
       ${body.duration_minutes},
       ${body.pace_min_km},
@@ -32,9 +49,18 @@ export async function POST(req: NextRequest) {
       ${body.elevation_gain_m},
       ${body.strava_id},
       ${body.start_date},
-      ${'Importado do Strava: ' + body.name}
+      ${body.name}
     )
   `
 
-  return NextResponse.json({ success: true })
+  // Se tinha treino no dia, marcar como concluído
+  if (workoutId) {
+    await sql`
+      UPDATE workouts
+      SET status = 'completed', updated_at = NOW()
+      WHERE id = ${workoutId}
+    `
+  }
+
+  return NextResponse.json({ success: true, workout_completed: !!workoutId })
 }

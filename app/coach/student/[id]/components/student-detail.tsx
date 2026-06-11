@@ -519,7 +519,7 @@ export function StudentDetail({
 
            
 
-            <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-3 gap-4">
+            <div className="grid grid-cols-1 xl:grid-cols-2 2xl:grid-cols-4 gap-4">
               {sortedWorkouts.map((workout, index) => (
               <Card
   key={workout.id}

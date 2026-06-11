@@ -14,6 +14,7 @@ export async function POST(request: NextRequest) {
     }
 
     const body = await request.json()
+    console.log('BATCH BODY:', body)
 
     for (const workout of body.workouts) {
       await sql`

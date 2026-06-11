@@ -776,12 +776,12 @@ async function handleStravaImport(activity: {
                     </div>
 
                     {!todayWorkoutCompleted && (
-                      <div className="pt-6">
+                      <div className="pt-2">
 
                        <Button
                           variant="outline"
                           size="sm"
-                          className="w-full sm:w-auto shrink-0 bg-white/5"
+                          className="w-full text-white sm:w-auto shrink-0 bg-white/5"
                           onClick={() =>
                             handleStartWorkout(todayWorkout)
                           }

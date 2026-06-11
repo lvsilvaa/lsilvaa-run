@@ -11,6 +11,26 @@ export default async function CoachPage() {
     redirect('/')
   }
 
+  const completedWorkouts = await sql`
+      SELECT
+        wl.id,
+        wl.student_id,
+        wl.workout_id,
+        wl.actual_distance_km,
+        wl.actual_duration_minutes,
+        wl.actual_pace_min_km,
+        wl.notes,
+        wl.completed_at,
+        s.name AS student_name,
+        w.title AS workout_title,
+        w.workout_type
+      FROM workout_logs wl
+      JOIN students s ON s.id = wl.student_id
+      LEFT JOIN workouts w ON w.id = wl.workout_id
+      WHERE s.coach_id = ${session.id}
+      ORDER BY wl.completed_at DESC
+      LIMIT 10
+    `
   // busca coach
   const coachData = await sql`
     SELECT *
@@ -87,6 +107,7 @@ export default async function CoachPage() {
       initialStudents={studentsData}
       pendingCoaches={pendingCoaches}
       registeredCoaches={registeredCoaches}
+      completedWorkouts={completedWorkouts}
     />
   )
 }

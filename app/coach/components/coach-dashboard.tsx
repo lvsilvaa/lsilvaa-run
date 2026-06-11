@@ -48,6 +48,19 @@ const fetcher = async (url: string) => {
 }
 
 type CoachDashboardProps =  {
+  completedWorkouts: {
+  id: number
+  student_id: number
+  workout_id: number | null
+  actual_distance_km: number | null
+  actual_duration_minutes: number | null
+  actual_pace_min_km: number | null
+  notes: string | null
+  completed_at: string
+  student_name: string
+  workout_title: string | null
+  workout_type: string | null
+}[]
   registeredCoaches: {
   id: number
   name: string
@@ -75,6 +88,7 @@ export function CoachDashboard({
   initialStudents,
   pendingCoaches,
   registeredCoaches,
+  completedWorkouts,
 }: CoachDashboardProps) {
 
   
@@ -211,6 +225,28 @@ async function handleToggleCoachStatus(targetCoach: {
     )
   }
 }
+function formatPace(pace: number | null) {
+  if (!pace) return '-'
+
+  const min = Math.floor(Number(pace))
+  const sec = Math.round((Number(pace) % 1) * 60)
+
+  return `${min}'${sec.toString().padStart(2, '0')}"/km`
+}
+
+    function getWorkoutTypeLabel(type?: string | null) {
+      const labels: Record<string, string> = {
+        easy: 'Leve',
+        tempo: 'Tempo',
+        interval: 'Intervalado',
+        long: 'Longão',
+        recovery: 'Recuperação',
+        race: 'Prova',
+        fartlek: 'Fartlek',
+      }
+
+      return type ? labels[type] || type : 'Treino'
+    }
   async function handleToggleStudentStatus(student: Student) {
   if (!student?.id) {
     toast.error('ID do aluno não encontrado')
@@ -722,6 +758,88 @@ async function handleDeleteStudent(studentId: number) {
             ))}
           </div>
         </div>
+        {completedWorkouts.length > 0 && (
+  <section className="relative z-10 mt-10 flex flex-col items-center">
+    <h2 className="mb-4 text-xl font-semibold text-white">
+      Treinos concluídos
+    </h2>
+
+    <div className="w-full max-w-3xl space-y-3">
+      {completedWorkouts.map((log) => (
+        <Card
+          key={log.id}
+          className="
+            border-green-500/20
+            bg-green-500/5
+            backdrop-blur-md
+          "
+        >
+          <CardContent className="p-4">
+            <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
+              <div className="min-w-0">
+                <p className="text-sm text-green-400 font-semibold">
+                  Treino concluído
+                </p>
+
+                <h3 className="text-white font-bold truncate">
+                  {log.student_name}
+                </h3>
+
+                <p className="text-sm text-zinc-400 truncate">
+                  {log.workout_title || 'Atividade registrada'} •{' '}
+                  {getWorkoutTypeLabel(log.workout_type)}
+                </p>
+              </div>
+
+              <div className="grid grid-cols-3 gap-3 text-center sm:min-w-[260px]">
+                <div>
+                  <p className="text-xs text-zinc-400">
+                    Km
+                  </p>
+                  <p className="text-sm font-bold text-white">
+                    {log.actual_distance_km || '-'}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-xs text-zinc-400">
+                    Tempo
+                  </p>
+                  <p className="text-sm font-bold text-white">
+                    {log.actual_duration_minutes
+                      ? `${log.actual_duration_minutes}min`
+                      : '-'}
+                  </p>
+                </div>
+
+                <div>
+                  <p className="text-xs text-zinc-400">
+                    Pace
+                  </p>
+                  <p className="text-sm font-bold text-white">
+                    {formatPace(Number(log.actual_pace_min_km))}
+                  </p>
+                </div>
+              </div>
+            </div>
+
+            {log.notes && (
+              <div className="mt-3 rounded-xl border border-white/10 bg-white/5 p-3">
+                <p className="text-xs text-zinc-400 mb-1">
+                  Mensagem do aluno
+                </p>
+
+                <p className="text-sm text-white">
+                  {log.notes}
+                </p>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  </section>
+)}
       </main>
 
      <AddStudentDialog

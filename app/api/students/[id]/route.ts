@@ -68,6 +68,8 @@ export async function PUT(
         base_pace_min_km = ${body.base_pace_min_km || null},
         test_3km_time = ${body.test_3km_time || null},
         test_3km_pace_min_km = ${body.test_3km_pace_min_km || null},
+        test_type = ${body.test_type || null},
+        test_distance_km = ${body.test_distance_km || null},
 
         z1_min = ${body.z1_min || null},
         z1_max = ${body.z1_max || null},

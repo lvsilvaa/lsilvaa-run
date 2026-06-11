@@ -26,11 +26,13 @@ export default async function StudentPage({ params }: Props) {
 
   const student = studentData[0]
 
-  const workoutsData = await sql`
-    SELECT * FROM workouts 
-    WHERE student_id = ${student.id} 
-    ORDER BY scheduled_date DESC
-  `
+ const workoutsData = await sql`
+      SELECT *
+      FROM workouts
+      WHERE student_id = ${Number(id)}
+      AND coach_id = ${session.id}
+      ORDER BY scheduled_date ASC
+    `
 
   const logsData = await sql`
     SELECT wl.*, w.title as workout_title, w.workout_type

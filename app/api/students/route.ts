@@ -60,6 +60,8 @@ export async function POST(req: Request) {
         max_heart_rate,
         test_3km_time,
         test_3km_pace_min_km,
+        test_type,
+        test_distance_km,
 
         z1_min,
         z1_max,
@@ -89,6 +91,8 @@ export async function POST(req: Request) {
         ${body.max_heart_rate || null},
         ${body.test_3km_time || null},
         ${body.test_3km_pace_min_km || null},
+        ${body.test_type || null},
+        ${body.test_distance_km || null},
 
         ${body.z1_min || null},
         ${body.z1_max || null},

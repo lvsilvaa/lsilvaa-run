@@ -13,11 +13,13 @@ export async function GET(
     return NextResponse.json({ error: 'Não autorizado' }, { status: 401 })
   }
 
-  const workouts = await sql`
-    SELECT * FROM workouts 
-    WHERE student_id = ${parseInt(id)} 
-    ORDER BY scheduled_date DESC
-  `
+ const workouts = await sql`
+  SELECT *
+  FROM workouts
+  WHERE student_id = ${Number(id)}
+  AND coach_id = ${session.id}
+  ORDER BY scheduled_date ASC
+`
 
   return NextResponse.json({ workouts })
 }
